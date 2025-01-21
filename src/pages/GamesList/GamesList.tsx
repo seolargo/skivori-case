@@ -90,15 +90,15 @@ export const GameList = () => {
             fetchGamesFromRemote(query, page, limit)
                 .then((response) => {
                     // Set paginated games
-                    setFilteredGames(response.data.paginatedGames); 
+                    setFilteredGames(response?.paginatedGames); 
 
                     // Set total items
-                    setTotal(response.data.total); 
+                    setTotal(response?.total); 
 
                     // Check if a search query exists and if no games match the query
                     handleNotFound(
                         query, 
-                        response.data.paginatedGames, 
+                        response?.paginatedGames, 
                         setNotFound
                     );
                 })
@@ -329,9 +329,9 @@ export const GameList = () => {
      * @param {string} props.error - The error message to display.
      * @returns {JSX.Element} - JSX for the error message.
      */
-    const ErrorMessage = ({ error } : { error: string }) => (
+    const ErrorMessage = ({ error } : { error: any }) => (
         <div className="alert alert-danger text-center">
-            {error}
+            {error.message}
         </div>
     );
 
