@@ -176,115 +176,211 @@ export const GameList = () => {
         }
     };
 
+    /**
+     * Renders the search bar.
+     * @param {string} search - The current search query.
+     * @param {Function} setSearch - Function to update the search query.
+     */
+    const renderSearchBar = (search, setSearch) => (
+        <div className="mb-4">
+            <input
+                type="text"
+                className="form-control"
+                placeholder="Search games..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+            />
+        </div>
+    );
+
+    /**
+     * Renders the current balance and currency conversion controls.
+     * @param {number} balance - Current balance in USD.
+     * @param {string} currency - Selected currency for conversion.
+     * @param {Function} setCurrency - Function to update the selected currency.
+     * @param {Function} convertBalance - Function to convert the balance.
+     * @param {string|null} convertedBalance - Converted balance to display.
+     * @param {string|null} exchangeRateError - Error message for exchange rate issues.
+     */
+    const renderBalanceSection = (balance, currency, setCurrency, convertBalance, convertedBalance, exchangeRateError) => (
+        <div className="mb-4">
+            <h3>Current Balance: {balance} USD</h3>
+            <div className="d-flex align-items-center">
+                <select
+                    className="form-select me-2"
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                >
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="INR">INR</option>
+                    <option value="JPY">JPY</option>
+                </select>
+                <button className="btn btn-primary" onClick={convertBalance}>
+                    Convert Balance
+                </button>
+            </div>
+            {convertedBalance && <p className="mt-2">Converted Balance: {convertedBalance}</p>}
+            {exchangeRateError && <div className="alert alert-danger mt-2">{exchangeRateError}</div>}
+        </div>
+    );
+
+    /**
+     * Renders the list of filtered games.
+     * @param {Array} filteredGames - List of games matching the search query.
+     */
+    const renderFilteredGames = (filteredGames) => (
+        <div className="row mb-5">
+            <h2>Filtered Results:</h2>
+            {filteredGames.map((game) => (
+                <div key={game.id} className="col-sm-6 col-md-4 col-lg-3 mb-4">
+                    <div className="card shadow-sm">
+                        <img
+                            src={game?.thumb?.url}
+                            alt={game.name}
+                            className="card-img-top"
+                            style={{ height: '200px', objectFit: 'cover' }}
+                        />
+                        <div className="card-body">
+                            <h5 className="card-title text-center">{game.name}</h5>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+    /**
+     * Renders the pagination controls.
+     * @param {number} page - Current page number.
+     * @param {number} total - Total number of items.
+     * @param {number} limit - Items per page.
+     * @param {Function} handlePageChange - Function to handle page navigation.
+     */
+    const renderPaginationControls = (page, total, limit, handlePageChange) => (
+        <nav aria-label="Page navigation">
+            <ul className="pagination justify-content-center">
+                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
+                    <button className="page-link" onClick={() => handlePageChange(page - 1)}>
+                        Previous
+                    </button>
+                </li>
+                {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).map((pageNum) => (
+                    <li key={pageNum} className={`page-item ${page === pageNum ? 'active' : ''}`}>
+                        <button className="page-link" onClick={() => handlePageChange(pageNum)}>
+                            {pageNum}
+                        </button>
+                    </li>
+                ))}
+                <li className={`page-item ${page === Math.ceil(total / limit) ? 'disabled' : ''}`}>
+                    <button className="page-link" onClick={() => handlePageChange(page + 1)}>
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    );
+
+    /**
+     * Determines if the "not found" message should be displayed.
+     * @param {boolean} loading - Whether the application is currently loading.
+     * @param {boolean} error - Whether an error occurred during the process.
+     * @param {boolean} notFound - Whether no results were found for the query.
+     * @returns {boolean} - Returns true if the "not found" message should be displayed.
+     */
+    const shouldShowNotFound = (loading, error, notFound) => {
+        return !loading && !error && notFound;
+    };
+
+    /**
+     * Determines if the filtered game list should be displayed.
+     * @param {boolean} loading - Whether the application is currently loading.
+     * @param {boolean} notFound - Whether no results were found for the query.
+     * @param {Array} filteredGames - The list of filtered games.
+     * @returns {boolean} - Returns true if the filtered game list should be displayed.
+     */
+    const shouldShowFilteredGames = (loading, notFound, filteredGames) => {
+        return !loading && !notFound && filteredGames.length > 0;
+    };
+
+    /**
+     * Determines if the component should display content when loading is complete, and no "not found" condition exists.
+     * @param {boolean} loading - Whether the application is currently loading.
+     * @param {boolean} notFound - Whether no results were found for the query.
+     * @returns {boolean} - Returns true if content should be displayed.
+     */
+    const shouldDisplayContent = (loading, notFound) => {
+        return !loading && !notFound;
+    };
+
+    /**
+     * Component to display a "No games found" message.
+     * @param {Object} props - The component props.
+     * @param {string} props.search - The search query provided by the user.
+     * @returns {JSX.Element} - JSX for the "No games found" alert.
+     */
+    const NoGamesFound = ({ search }) => (
+        <div className="alert alert-warning text-center">
+            No games found for "<strong>{search}</strong>"
+        </div>
+    );
+
+    /**
+     * Component to display an error message.
+     * @param {Object} props - The component props.
+     * @param {string} props.error - The error message to display.
+     * @returns {JSX.Element} - JSX for the error message.
+     */
+    const ErrorMessage = ({ error }) => (
+        <div className="alert alert-danger text-center">
+            {error}
+        </div>
+    );
+
+    /**
+     * Component to display a loading message.
+     * @returns {JSX.Element} - JSX for the loading message.
+     */
+    const LoadingMessage = () => (
+        <div className="text-center my-3">
+            Loading games...
+        </div>
+    );
+
     return (
         <div className="container py-5">
             <h1 className="text-center mb-4">Game List</h1>
 
-            {/* Search Bar */}
-            <div className="mb-4">
-                <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search games..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
+            {renderSearchBar(search, setSearch)}
 
-            {/* Display Current Balance */}
-            <div className="mb-4">
-                <h3>Current Balance: {balance} USD</h3>
-
-                {/* Currency Conversion */}
-                <div className="d-flex align-items-center">
-                    <select
-                        className="form-select me-2"
-                        value={currency}
-                        onChange={(e) => setCurrency(e.target.value)}
-                    >
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                        <option value="INR">INR</option>
-                        <option value="JPY">JPY</option>
-                    </select>
-                    <button className="btn btn-primary" onClick={convertBalance}>
-                        Convert Balance
-                    </button>
-                </div>
-
-                {/* Converted Balance */}
-                {convertedBalance && (
-                    <p className="mt-2">Converted Balance: {convertedBalance}</p>
-                )}
-
-                {/* Exchange Rate Error */}
-                {exchangeRateError && (
-                    <div className="alert alert-danger mt-2">{exchangeRateError}</div>
-                )}
-            </div>
-
-            {/* Loading Message */}
-            {loading && <div className="text-center my-3">Loading games...</div>}
-
-            {/* Error Message */}
-            {error && <div className="alert alert-danger text-center">{error}</div>}
-
-            {/* Not Found Message */}
-            {!loading && !error && notFound && (
-                <div className="alert alert-warning text-center">
-                    No games found for "<strong>{search}</strong>"
-                </div>
+            {renderBalanceSection(
+                balance,
+                currency,
+                setCurrency,
+                convertBalance,
+                convertedBalance,
+                exchangeRateError
             )}
 
-            {/* Filtered Game List */}
-            {!loading && !notFound && filteredGames.length > 0 && (
-                <div className="row mb-5">
-                    <h2>Filtered Results:</h2>
-                    {filteredGames.map((game) => (
-                        <div key={game.id} className="col-sm-6 col-md-4 col-lg-3 mb-4">
-                            <div className="card shadow-sm">
-                                <img
-                                    src={game?.thumb?.url}
-                                    alt={game.name}
-                                    className="card-img-top"
-                                    style={{ height: '200px', objectFit: 'cover' }}
-                                />
-                                <div className="card-body">
-                                    <h5 className="card-title text-center">{game.name}</h5>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+            {loading && 
+                <LoadingMessage />
+            }
+
+            {error && 
+                <ErrorMessage error={error} />
+            }
+
+            {shouldShowNotFound(loading, error, notFound) && (
+                <NoGamesFound search={search} />
             )}
 
-            {/* Pagination Controls */}
-            {!loading && !notFound && (
-                <nav aria-label="Page navigation">
-                    <ul className="pagination justify-content-center">
-                        <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                            <button className="page-link" onClick={() => handlePageChange(page - 1)}>
-                                Previous
-                            </button>
-                        </li>
-                        {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).map((pageNum) => (
-                            <li
-                                key={pageNum}
-                                className={`page-item ${page === pageNum ? 'active' : ''}`}
-                            >
-                                <button className="page-link" onClick={() => handlePageChange(pageNum)}>
-                                    {pageNum}
-                                </button>
-                            </li>
-                        ))}
-                        <li className={`page-item ${page === Math.ceil(total / limit) ? 'disabled' : ''}`}>
-                            <button className="page-link" onClick={() => handlePageChange(page + 1)}>
-                                Next
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            )}
+            {shouldShowFilteredGames(loading, notFound, filteredGames) && 
+                renderFilteredGames(filteredGames)
+            }
+
+            {shouldDisplayContent(loading, notFound) && 
+                renderPaginationControls(page, total, limit, handlePageChange)
+            }
         </div>
     );
 };
