@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 // React and hooks
 import { useEffect, useState } from 'react';
+
+import Pagination from '../../components/Pagination/Pagination';
 
 // Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,12 +12,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // Services
 import { fetchGamesFromRemote } from '../../services/gamesService';
 import { convertCurrency } from '../../services/currencyService';
-import { Currencies, Directions } from '../../enums/enums';
+import { Currencies } from '../../enums/enums';
 
 export const GameList = () => {
-    // State for all games
-    const [allGames, setAllGames] = useState([]); 
+    // Current balance in default currency
+    const balance = 100;
 
+    const itemsPerPage = 10;
+    
     // State for filtered games
     const [filteredGames, setFilteredGames] = useState([]); 
 
@@ -21,9 +28,6 @@ export const GameList = () => {
 
     // State for no results found
     const [notFound, setNotFound] = useState<boolean>(false); 
-
-    // Current balance in default currency
-    const [balance, setBalance] = useState<number>(100); 
 
     // Converted balance
     const [convertedBalance, setConvertedBalance] = useState<string>(""); 
@@ -85,9 +89,6 @@ export const GameList = () => {
             // Fetch games from the remote server
             fetchGamesFromRemote(query, page, limit)
                 .then((response) => {
-                    // Set all games
-                    setAllGames(response.data.allGames); 
-
                     // Set paginated games
                     setFilteredGames(response.data.paginatedGames); 
 
@@ -102,7 +103,7 @@ export const GameList = () => {
                     );
                 })
                 .catch((err) => {
-                    setError('An error occurred while fetching games. Please try again.');
+                    setError(err);
                 });
         } catch (err) {
             setError('An error occurred while fetching games. Please try again.');
@@ -137,36 +138,6 @@ export const GameList = () => {
         setNotFound(
             shouldSetNotFound(query, paginatedGames)
         );
-    };
-
-    /**
-     * Updates the current page state when the user navigates to a new page.
-     * Ensures the new page is within valid bounds (greater than 0 and less than or equal to the total number of pages).
-     * @param {number} newPage - The page number to navigate to.
-     */
-    const handlePageChange = (newPage: number) => {
-        // Check if the new page is valid (greater than 0 and within the total number of pages)
-        if (isValidPage(newPage, total, limit)) {
-            // Update the page state
-            setPage(newPage); 
-        }
-    };
-
-    /**
-     * Checks if the given page number is within valid bounds.
-     * 
-     * @param {number} newPage - The page number to validate.
-     * @param {number} total - The total number of items.
-     * @param {number} limit - The number of items per page.
-     * 
-     * @returns {boolean} - Returns true if the page number is valid, otherwise false.
-     */
-    const isValidPage = (
-        newPage: number, 
-        total: number, 
-        limit: number
-    ) => {
-        return newPage > 0 && newPage <= Math.ceil(total / limit);
     };
 
     /**
@@ -292,112 +263,7 @@ export const GameList = () => {
                 </div>
             ))}
         </div>
-    );
-
-    /**
-     * Renders a pagination button.
-     * 
-     * @param {number} targetPage - The page number for the button.
-     * @param {string} label - The button label.
-     * @param {boolean} isDisabled - Whether the button is disabled.
-     * @param {boolean} isActive - Whether the button is active.
-     * 
-     * @returns {JSX.Element} - JSX for the pagination button.
-     */
-    const renderPaginationButton = (
-        targetPage: number, 
-        label: string, 
-        isDisabled = false, 
-        isActive = false
-    ) => (
-        <li className={`page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`}>
-            <button 
-                className="page-link" 
-                onClick={() => handlePageChange(targetPage)} 
-                disabled={isDisabled}
-            >
-                {label}
-            </button>
-        </li>
-    );
-
-    /**
-     * Renders the page number buttons for pagination.
-     * 
-     * @param {number} totalPages - The total number of pages.
-     * @param {number} currentPage - The current page number.
-     * @param {Function} renderButton - Function to render individual pagination buttons.
-     * 
-     * @returns {JSX.Element[]} - An array of JSX elements representing the page buttons.
-     */
-    const renderPageNumberButtons = (
-        totalPages: number, 
-        currentPage: number, 
-        renderButton: any
-    ) => {
-        // Use Array.from to create an array with a length equal to the total number of pages
-        return Array.from(
-            { length: totalPages }, 
-            (_, index) => {
-                // Add 1 to the index to determine the actual page number (pages start at 1, not 0)
-                const pageNum = index + 1;
-
-                // Call the renderButton function to generate a button for this page
-                // The button is marked as active if the current page matches pageNum
-                return renderButton(
-                    pageNum, 
-                    pageNum, 
-                    false, 
-                    currentPage === pageNum
-                );
-            }
-        );
-    };
-
-    /**
-     * Renders pagination controls.
-     * 
-     * @param {number} page - The current page number.
-     * @param {number} total - The total number of items.
-     * @param {number} limit - The number of items per page.
-     * @param {Function} handlePageChange - The function to handle page navigation.
-     * 
-     * @returns {JSX.Element} - JSX for the pagination controls.
-     */
-    const renderPaginationControls = (
-        page: number, 
-        total: number, 
-        limit: number
-    ) => {
-        const totalPages = Math.ceil(total / limit);
-
-        return (
-            <nav aria-label="Page navigation">
-                <ul className="pagination justify-content-center">
-                    {/* Previous Button */}
-                    {renderPaginationButton(
-                        page - 1, 
-                        Directions.Previous, 
-                        page === 1
-                    )}
-
-                    {/* Page Number Buttons */}
-                    {renderPageNumberButtons(
-                        totalPages, 
-                        page, 
-                        renderPaginationButton
-                    )}
-
-                    {/* Next Button */}
-                    {renderPaginationButton(
-                        page + 1, 
-                        Directions.Next, 
-                        page === totalPages
-                    )}
-                </ul>
-            </nav>
-        );
-    };
+    );    
 
     /**
      * Determines if the "not found" message should be displayed.
@@ -500,7 +366,7 @@ export const GameList = () => {
                 <LoadingMessage />
             }
 
-            {error && 
+            {error !== "" && 
                 <ErrorMessage error={error} />
             }
 
@@ -513,7 +379,12 @@ export const GameList = () => {
             }
 
             {shouldDisplayContent(loading, notFound) && 
-                renderPaginationControls(page, total, limit)
+                <Pagination
+                    currentPage={page}
+                    totalItems={total}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={(newPage) => setPage(newPage)}
+                />
             }
         </div>
     );

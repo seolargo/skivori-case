@@ -31,6 +31,8 @@ export const fetchGamesFromRemote = async (
             }
         );
 
+        console.log("response: ", response);
+
         return response.data;
     } catch (error) {
         throw new Error('Unable to fetch games. Please try again later.');
