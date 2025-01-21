@@ -267,6 +267,10 @@ export const GameList = () => {
                                 src={game?.thumb?.url}
                                 alt={game?.name}
                                 className="card-img-top"
+                                loading="lazy"
+                                width="300" /* Reserve explicit space */
+                                height="200" /* Reserve explicit space */
+                                style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                             />
                             <div className="card-body">
                                 <h5 className="card-title text-center">

@@ -3,10 +3,27 @@
   font-family: Arial, sans-serif;
 }
 
+nav {
+  height: 60px; /* Fixed height */
+  position: sticky; /* Optional: Keeps nav bar in place */
+  top: 0;
+  z-index: 10;
+}
+
+.container {
+  min-height: 300px; /* Ensures a stable layout before content loads */
+}
+
 .games-container {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  min-height: 400px; /* Reserve space for game items */
+}
+
+img {
+  width: 100px; /* Example width */
+  height: auto; /* Maintain aspect ratio */
 }
 
 .game-item {
@@ -19,9 +36,44 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card-img-top{
-  height: '200px';
-  object-fit: 'cover';
+.card-img-top {
+  width: 100%;
+  height: 200px; /* Reserve space for images */
+  object-fit: cover;
+}
+
+.search-input {
+  height: 50px; /* Ensure consistent height */
+  font-size: 16px; /* Prevent resizing due to larger text */
+}
+
+nav a {
+  padding: 10px 15px; /* Prevent resizing due to padding changes */
+  display: inline-block;
+}
+
+nav {
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.card-body {
+  min-height: 100px; /* Reserve space for text */
+}
+
+.pagination {
+  min-height: 50px; /* Reserve space for pagination */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  width: 100%;
+  height: 300px; /* Set fixed card height */
+  transition: transform 0.3s ease-in-out;
 }
 
 .card:hover {
@@ -49,4 +101,10 @@
   text-align: center;
   color: red;
   font-size: 18px;
+}
+
+@font-face {
+  font-family: 'CustomFont';
+  src: url('/path-to-font.woff2') format('woff2');
+  font-display: swap;
 }
