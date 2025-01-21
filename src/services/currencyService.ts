@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const currencyUrl = process.env.CURRENCY_API;
+const currencyUrl = process.env['CURRENCY_API'];
 
 /**
  * Fetches the exchange rate for the specified currency and converts the balance.
@@ -9,7 +9,7 @@ const currencyUrl = process.env.CURRENCY_API;
  * @returns {Promise<string>} - The converted balance with the currency symbol.
  * @throws {Error} - Throws an error if the currency is not found or the request fails.
  */
-export const convertCurrency = async (currency, balance) => {
+export const convertCurrency = async (currency: string, balance: number) => {
     try {
         // Fetch exchange rates from the API
         const response = await axios.get(`${currencyUrl}`);
@@ -25,6 +25,10 @@ export const convertCurrency = async (currency, balance) => {
         return `${converted} ${currency}`;
     } catch (error) {
         // Handle errors and rethrow them for the caller to handle
-        throw new Error(error.message || 'Failed to convert currency.');
+        if (error instanceof Error) {
+            throw new Error(error.message || 'Failed to convert currency.');
+        } else {
+            throw new Error('Failed to convert currency.');
+        }
     }
 };

@@ -1,5 +1,5 @@
 // React and hooks
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // Services
 import { fetchGamesFromRemote } from '../../services/gamesService';
 import { convertCurrency } from '../../services/currencyService';
+import { Currencies, Directions } from '../../enums/enums';
 
 export const GameList = () => {
     // State for all games
@@ -25,17 +26,17 @@ export const GameList = () => {
     const [balance, setBalance] = useState<number>(100); 
 
     // Converted balance
-    const [convertedBalance, setConvertedBalance] = useState(null); 
+    const [convertedBalance, setConvertedBalance] = useState<string>(""); 
 
     // Target currency
-    const [currency, setCurrency] = useState('EUR'); 
+    const [currency, setCurrency] = useState<Currencies>(Currencies.EUR); 
 
     // Exchange rate error
-    const [exchangeRateError, setExchangeRateError] = useState(null); 
+    const [exchangeRateError, setExchangeRateError] = useState<string>(""); 
 
     // Loading and error states
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string>("");
 
     // Current page for pagination
     const [page, setPage] = useState<number>(1); 
@@ -68,14 +69,16 @@ export const GameList = () => {
      *
      * @async
      * @function
+     * 
      * @param {string} [query=''] - The search query to filter games (default is an empty string for no filtering).
      * @param {number} [page=1] - The page number for pagination (default is 1).
+     * 
      * @throws {Error} - Throws an error if the request fails or encounters an issue.
      */
     const fetchGames = async (query = '', page = 1) => {
         // Set values for loading, error, and not found states
         setLoading(true);
-        setError(null);
+        setError("");
         setNotFound(false);
 
         try {
@@ -99,10 +102,10 @@ export const GameList = () => {
                     );
                 })
                 .catch((err) => {
-                    setError('An error occurred while fetching games. Please try again.', err);
+                    setError('An error occurred while fetching games. Please try again.');
                 });
         } catch (err) {
-            setError('An error occurred while fetching games. Please try again.', err);
+            setError('An error occurred while fetching games. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -110,11 +113,13 @@ export const GameList = () => {
 
     /**
      * Determines whether the "not found" state should be set to true.
+     * 
      * @param {string} query - The search query provided by the user.
      * @param {Array} paginatedGames - The list of games returned from the backend.
+     * 
      * @returns {boolean} - Returns true if no games match the query; otherwise, false.
      */
-    const shouldSetNotFound = (query, paginatedGames) => {
+    const shouldSetNotFound = (query: string, paginatedGames = []) => {
         return query && paginatedGames.length === 0;
     };
 
@@ -125,9 +130,9 @@ export const GameList = () => {
      * @param {Function} setNotFound - The state setter function for the notFound state.
      */
     const handleNotFound = (
-        query, 
-        paginatedGames, 
-        setNotFound
+        query: string, 
+        paginatedGames = [], 
+        setNotFound: any
     ) => {
         setNotFound(
             shouldSetNotFound(query, paginatedGames)
@@ -139,7 +144,7 @@ export const GameList = () => {
      * Ensures the new page is within valid bounds (greater than 0 and less than or equal to the total number of pages).
      * @param {number} newPage - The page number to navigate to.
      */
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         // Check if the new page is valid (greater than 0 and within the total number of pages)
         if (isValidPage(newPage, total, limit)) {
             // Update the page state
@@ -149,15 +154,17 @@ export const GameList = () => {
 
     /**
      * Checks if the given page number is within valid bounds.
+     * 
      * @param {number} newPage - The page number to validate.
      * @param {number} total - The total number of items.
      * @param {number} limit - The number of items per page.
+     * 
      * @returns {boolean} - Returns true if the page number is valid, otherwise false.
      */
     const isValidPage = (
-        newPage, 
-        total, 
-        limit
+        newPage: number, 
+        total: number, 
+        limit: number
     ) => {
         return newPage > 0 && newPage <= Math.ceil(total / limit);
     };
@@ -172,8 +179,8 @@ export const GameList = () => {
      * @throws {Error} - Throws an error if the currency conversion fails or the service is unavailable.
      */
     const convertBalance = async () => {
-        setExchangeRateError(null);
-        setConvertedBalance(null);
+        setExchangeRateError("");
+        setConvertedBalance("");
 
         try {
             // Call the service
@@ -182,7 +189,7 @@ export const GameList = () => {
             // Update the converted balance
             setConvertedBalance(converted); 
         } catch (err) {
-            setExchangeRateError('Failed to fetch exchange rate. Please try again.', err);
+            setExchangeRateError('Failed to fetch exchange rate. Please try again.');
         }
     };
 
@@ -191,7 +198,7 @@ export const GameList = () => {
      * @param {string} search - The current search query.
      * @param {Function} setSearch - Function to update the search query.
      */
-    const renderSearchBar = (search, setSearch) => (
+    const renderSearchBar = (search: string, setSearch: any) => (
         <div className="mb-4">
             <input
                 type="text"
@@ -205,24 +212,25 @@ export const GameList = () => {
 
     /**
      * Renders the current balance and currency conversion controls.
+     * 
      * @param {number} balance - Current balance in USD.
      * @param {string} currency - Selected currency for conversion.
      * @param {Function} setCurrency - Function to update the selected currency.
      * @param {Function} convertBalance - Function to convert the balance.
-     * @param {string|null} convertedBalance - Converted balance to display.
-     * @param {string|null} exchangeRateError - Error message for exchange rate issues.
+     * @param {string} convertedBalance - Converted balance to display.
+     * @param {string} exchangeRateError - Error message for exchange rate issues.
      */
     const renderBalanceSection = (
-        balance, 
-        currency, 
-        setCurrency, 
-        convertBalance, 
-        convertedBalance, 
-        exchangeRateError
+        balance: number, 
+        currency: string, 
+        setCurrency: any, 
+        convertBalance: any, 
+        convertedBalance: string, 
+        exchangeRateError: string
     ) => (
         <div className="mb-4">
             <h3>
-                Current Balance: {balance} USD
+                Current Balance: {balance} {Currencies.USD}
             </h3>
             <div className="d-flex align-items-center">
                 <select
@@ -230,10 +238,10 @@ export const GameList = () => {
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
                 >
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="INR">INR</option>
-                    <option value="JPY">JPY</option>
+                    <option value={Currencies.EUR}>{Currencies.EUR}</option>
+                    <option value={Currencies.GBP}>{Currencies.GBP}</option>
+                    <option value={Currencies.INR}>{Currencies.INR}</option>
+                    <option value={Currencies.JPY}>{Currencies.JPY}</option>
                 </select>
                 <button 
                     className="btn btn-primary" 
@@ -259,23 +267,25 @@ export const GameList = () => {
      * Renders the list of filtered games.
      * @param {Array} filteredGames - List of games matching the search query.
      */
-    const renderFilteredGames = (filteredGames) => (
+    const renderFilteredGames = (filteredGames: Array<any> = []) => (
         <div className="row mb-5">
             <h2>
                 Filtered Results:
             </h2>
             {filteredGames.map((game) => (
-                <div key={game.id} className="col-sm-6 col-md-4 col-lg-3 mb-4">
+                <div 
+                    key={game?.id} 
+                    className="col-sm-6 col-md-4 col-lg-3 mb-4"
+                >
                     <div className="card shadow-sm">
                         <img
                             src={game?.thumb?.url}
-                            alt={game.name}
+                            alt={game?.name}
                             className="card-img-top"
-                            style={{ height: '200px', objectFit: 'cover' }}
                         />
                         <div className="card-body">
                             <h5 className="card-title text-center">
-                                {game.name}
+                                {game?.name}
                             </h5>
                         </div>
                     </div>
@@ -286,15 +296,17 @@ export const GameList = () => {
 
     /**
      * Renders a pagination button.
+     * 
      * @param {number} targetPage - The page number for the button.
      * @param {string} label - The button label.
      * @param {boolean} isDisabled - Whether the button is disabled.
      * @param {boolean} isActive - Whether the button is active.
+     * 
      * @returns {JSX.Element} - JSX for the pagination button.
      */
     const renderPaginationButton = (
-        targetPage, 
-        label, 
+        targetPage: number, 
+        label: string, 
         isDisabled = false, 
         isActive = false
     ) => (
@@ -311,15 +323,17 @@ export const GameList = () => {
 
     /**
      * Renders the page number buttons for pagination.
+     * 
      * @param {number} totalPages - The total number of pages.
      * @param {number} currentPage - The current page number.
      * @param {Function} renderButton - Function to render individual pagination buttons.
+     * 
      * @returns {JSX.Element[]} - An array of JSX elements representing the page buttons.
      */
     const renderPageNumberButtons = (
-        totalPages, 
-        currentPage, 
-        renderButton
+        totalPages: number, 
+        currentPage: number, 
+        renderButton: any
     ) => {
         // Use Array.from to create an array with a length equal to the total number of pages
         return Array.from(
@@ -342,13 +356,19 @@ export const GameList = () => {
 
     /**
      * Renders pagination controls.
+     * 
      * @param {number} page - The current page number.
      * @param {number} total - The total number of items.
      * @param {number} limit - The number of items per page.
      * @param {Function} handlePageChange - The function to handle page navigation.
+     * 
      * @returns {JSX.Element} - JSX for the pagination controls.
      */
-    const renderPaginationControls = (page, total, limit) => {
+    const renderPaginationControls = (
+        page: number, 
+        total: number, 
+        limit: number
+    ) => {
         const totalPages = Math.ceil(total / limit);
 
         return (
@@ -357,7 +377,7 @@ export const GameList = () => {
                     {/* Previous Button */}
                     {renderPaginationButton(
                         page - 1, 
-                        'Previous', 
+                        Directions.Previous, 
                         page === 1
                     )}
 
@@ -371,7 +391,7 @@ export const GameList = () => {
                     {/* Next Button */}
                     {renderPaginationButton(
                         page + 1, 
-                        'Next', 
+                        Directions.Next, 
                         page === totalPages
                     )}
                 </ul>
@@ -381,44 +401,47 @@ export const GameList = () => {
 
     /**
      * Determines if the "not found" message should be displayed.
+     * 
      * @param {boolean} loading - Whether the application is currently loading.
-     * @param {boolean} error - Whether an error occurred during the process.
+     * @param {string} error - Whether an error occurred during the process.
      * @param {boolean} notFound - Whether no results were found for the query.
+     * 
      * @returns {boolean} - Returns true if the "not found" message should be displayed.
      */
     const shouldShowNotFound = (
-        loading, 
-        error, 
-        notFound
+        loading: boolean, 
+        error: string, 
+        notFound: boolean
     ) => {
         return !loading && !error && notFound;
     };
 
     /**
      * Determines if the filtered game list should be displayed.
+     * 
      * @param {boolean} loading - Whether the application is currently loading.
      * @param {boolean} notFound - Whether no results were found for the query.
      * @param {Array} filteredGames - The list of filtered games.
+     * 
      * @returns {boolean} - Returns true if the filtered game list should be displayed.
      */
     const shouldShowFilteredGames = (
-        loading, 
-        notFound, 
-        filteredGames
+        loading: boolean, 
+        notFound: boolean, 
+        filteredGames = []
     ) => {
         return !loading && !notFound && filteredGames.length > 0;
     };
 
     /**
      * Determines if the component should display content when loading is complete, and no "not found" condition exists.
+     * 
      * @param {boolean} loading - Whether the application is currently loading.
      * @param {boolean} notFound - Whether no results were found for the query.
+     * 
      * @returns {boolean} - Returns true if content should be displayed.
      */
-    const shouldDisplayContent = (
-        loading, 
-        notFound
-    ) => {
+    const shouldDisplayContent = (loading: boolean, notFound: boolean) => {
         return !loading && !notFound;
     };
 
@@ -428,9 +451,9 @@ export const GameList = () => {
      * @param {string} props.search - The search query provided by the user.
      * @returns {JSX.Element} - JSX for the "No games found" alert.
      */
-    const NoGamesFound = ({ search }) => (
+    const NoGamesFound = ({ search } : { search: string }) => (
         <div className="alert alert-warning text-center">
-            No games found for "<strong>{search}</strong>"
+            No games found for <strong>{search}</strong>
         </div>
     );
 
@@ -440,7 +463,7 @@ export const GameList = () => {
      * @param {string} props.error - The error message to display.
      * @returns {JSX.Element} - JSX for the error message.
      */
-    const ErrorMessage = ({ error }) => (
+    const ErrorMessage = ({ error } : { error: string }) => (
         <div className="alert alert-danger text-center">
             {error}
         </div>
@@ -458,7 +481,9 @@ export const GameList = () => {
 
     return (
         <div className="container py-5">
-            <h1 className="text-center mb-4">Game List</h1>
+            <h1 className="text-center mb-4">
+                Game List
+            </h1>
 
             {renderSearchBar(search, setSearch)}
 
