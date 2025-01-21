@@ -124,8 +124,14 @@ export const GameList = () => {
      * @param {Array} paginatedGames - The list of games returned from the backend.
      * @param {Function} setNotFound - The state setter function for the notFound state.
      */
-    const handleNotFound = (query, paginatedGames, setNotFound) => {
-        setNotFound(shouldSetNotFound(query, paginatedGames));
+    const handleNotFound = (
+        query, 
+        paginatedGames, 
+        setNotFound
+    ) => {
+        setNotFound(
+            shouldSetNotFound(query, paginatedGames)
+        );
     };
 
     /**
@@ -148,7 +154,11 @@ export const GameList = () => {
      * @param {number} limit - The number of items per page.
      * @returns {boolean} - Returns true if the page number is valid, otherwise false.
      */
-    const isValidPage = (newPage, total, limit) => {
+    const isValidPage = (
+        newPage, 
+        total, 
+        limit
+    ) => {
         return newPage > 0 && newPage <= Math.ceil(total / limit);
     };
 
@@ -202,9 +212,18 @@ export const GameList = () => {
      * @param {string|null} convertedBalance - Converted balance to display.
      * @param {string|null} exchangeRateError - Error message for exchange rate issues.
      */
-    const renderBalanceSection = (balance, currency, setCurrency, convertBalance, convertedBalance, exchangeRateError) => (
+    const renderBalanceSection = (
+        balance, 
+        currency, 
+        setCurrency, 
+        convertBalance, 
+        convertedBalance, 
+        exchangeRateError
+    ) => (
         <div className="mb-4">
-            <h3>Current Balance: {balance} USD</h3>
+            <h3>
+                Current Balance: {balance} USD
+            </h3>
             <div className="d-flex align-items-center">
                 <select
                     className="form-select me-2"
@@ -216,12 +235,23 @@ export const GameList = () => {
                     <option value="INR">INR</option>
                     <option value="JPY">JPY</option>
                 </select>
-                <button className="btn btn-primary" onClick={convertBalance}>
+                <button 
+                    className="btn btn-primary" 
+                    onClick={convertBalance}
+                >
                     Convert Balance
                 </button>
             </div>
-            {convertedBalance && <p className="mt-2">Converted Balance: {convertedBalance}</p>}
-            {exchangeRateError && <div className="alert alert-danger mt-2">{exchangeRateError}</div>}
+            {convertedBalance && 
+                <p className="mt-2">
+                    Converted Balance: {convertedBalance}
+                </p>
+            }
+            {exchangeRateError && 
+                <div className="alert alert-danger mt-2">
+                    {exchangeRateError}
+                </div>
+            }
         </div>
     );
 
@@ -231,7 +261,9 @@ export const GameList = () => {
      */
     const renderFilteredGames = (filteredGames) => (
         <div className="row mb-5">
-            <h2>Filtered Results:</h2>
+            <h2>
+                Filtered Results:
+            </h2>
             {filteredGames.map((game) => (
                 <div key={game.id} className="col-sm-6 col-md-4 col-lg-3 mb-4">
                     <div className="card shadow-sm">
@@ -242,7 +274,9 @@ export const GameList = () => {
                             style={{ height: '200px', objectFit: 'cover' }}
                         />
                         <div className="card-body">
-                            <h5 className="card-title text-center">{game.name}</h5>
+                            <h5 className="card-title text-center">
+                                {game.name}
+                            </h5>
                         </div>
                     </div>
                 </div>
@@ -251,35 +285,99 @@ export const GameList = () => {
     );
 
     /**
-     * Renders the pagination controls.
-     * @param {number} page - Current page number.
-     * @param {number} total - Total number of items.
-     * @param {number} limit - Items per page.
-     * @param {Function} handlePageChange - Function to handle page navigation.
+     * Renders a pagination button.
+     * @param {number} targetPage - The page number for the button.
+     * @param {string} label - The button label.
+     * @param {boolean} isDisabled - Whether the button is disabled.
+     * @param {boolean} isActive - Whether the button is active.
+     * @returns {JSX.Element} - JSX for the pagination button.
      */
-    const renderPaginationControls = (page, total, limit, handlePageChange) => (
-        <nav aria-label="Page navigation">
-            <ul className="pagination justify-content-center">
-                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                    <button className="page-link" onClick={() => handlePageChange(page - 1)}>
-                        Previous
-                    </button>
-                </li>
-                {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).map((pageNum) => (
-                    <li key={pageNum} className={`page-item ${page === pageNum ? 'active' : ''}`}>
-                        <button className="page-link" onClick={() => handlePageChange(pageNum)}>
-                            {pageNum}
-                        </button>
-                    </li>
-                ))}
-                <li className={`page-item ${page === Math.ceil(total / limit) ? 'disabled' : ''}`}>
-                    <button className="page-link" onClick={() => handlePageChange(page + 1)}>
-                        Next
-                    </button>
-                </li>
-            </ul>
-        </nav>
+    const renderPaginationButton = (
+        targetPage, 
+        label, 
+        isDisabled = false, 
+        isActive = false
+    ) => (
+        <li className={`page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`}>
+            <button 
+                className="page-link" 
+                onClick={() => handlePageChange(targetPage)} 
+                disabled={isDisabled}
+            >
+                {label}
+            </button>
+        </li>
     );
+
+    /**
+     * Renders the page number buttons for pagination.
+     * @param {number} totalPages - The total number of pages.
+     * @param {number} currentPage - The current page number.
+     * @param {Function} renderButton - Function to render individual pagination buttons.
+     * @returns {JSX.Element[]} - An array of JSX elements representing the page buttons.
+     */
+    const renderPageNumberButtons = (
+        totalPages, 
+        currentPage, 
+        renderButton
+    ) => {
+        // Use Array.from to create an array with a length equal to the total number of pages
+        return Array.from(
+            { length: totalPages }, 
+            (_, index) => {
+                // Add 1 to the index to determine the actual page number (pages start at 1, not 0)
+                const pageNum = index + 1;
+
+                // Call the renderButton function to generate a button for this page
+                // The button is marked as active if the current page matches pageNum
+                return renderButton(
+                    pageNum, 
+                    pageNum, 
+                    false, 
+                    currentPage === pageNum
+                );
+            }
+        );
+    };
+
+    /**
+     * Renders pagination controls.
+     * @param {number} page - The current page number.
+     * @param {number} total - The total number of items.
+     * @param {number} limit - The number of items per page.
+     * @param {Function} handlePageChange - The function to handle page navigation.
+     * @returns {JSX.Element} - JSX for the pagination controls.
+     */
+    const renderPaginationControls = (page, total, limit) => {
+        const totalPages = Math.ceil(total / limit);
+
+        return (
+            <nav aria-label="Page navigation">
+                <ul className="pagination justify-content-center">
+                    {/* Previous Button */}
+                    {renderPaginationButton(
+                        page - 1, 
+                        'Previous', 
+                        page === 1
+                    )}
+
+                    {/* Page Number Buttons */}
+                    {renderPageNumberButtons(
+                        totalPages, 
+                        page, 
+                        renderPaginationButton
+                    )}
+
+                    {/* Next Button */}
+                    {renderPaginationButton(
+                        page + 1, 
+                        'Next', 
+                        page === totalPages
+                    )}
+                </ul>
+            </nav>
+        );
+    };
 
     /**
      * Determines if the "not found" message should be displayed.
@@ -288,7 +386,11 @@ export const GameList = () => {
      * @param {boolean} notFound - Whether no results were found for the query.
      * @returns {boolean} - Returns true if the "not found" message should be displayed.
      */
-    const shouldShowNotFound = (loading, error, notFound) => {
+    const shouldShowNotFound = (
+        loading, 
+        error, 
+        notFound
+    ) => {
         return !loading && !error && notFound;
     };
 
@@ -299,7 +401,11 @@ export const GameList = () => {
      * @param {Array} filteredGames - The list of filtered games.
      * @returns {boolean} - Returns true if the filtered game list should be displayed.
      */
-    const shouldShowFilteredGames = (loading, notFound, filteredGames) => {
+    const shouldShowFilteredGames = (
+        loading, 
+        notFound, 
+        filteredGames
+    ) => {
         return !loading && !notFound && filteredGames.length > 0;
     };
 
@@ -309,7 +415,10 @@ export const GameList = () => {
      * @param {boolean} notFound - Whether no results were found for the query.
      * @returns {boolean} - Returns true if content should be displayed.
      */
-    const shouldDisplayContent = (loading, notFound) => {
+    const shouldDisplayContent = (
+        loading, 
+        notFound
+    ) => {
         return !loading && !notFound;
     };
 
@@ -379,7 +488,7 @@ export const GameList = () => {
             }
 
             {shouldDisplayContent(loading, notFound) && 
-                renderPaginationControls(page, total, limit, handlePageChange)
+                renderPaginationControls(page, total, limit)
             }
         </div>
     );
