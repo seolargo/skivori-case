@@ -1,8 +1,12 @@
 import axios from 'axios';
 
+import config from '../config/config';	
+
+const env = 'development';
+
 // Base backend URL and endpoints
-//const backendUrl = process.env['BACKEND_API'];
-//const gamesUrl = process.env['GAMES_URL'];
+const backendUrl = config[env].BACKEND_API;
+const gamesUrl = config[env].GAMES_URL;
 
 /**
  * Fetch games from the backend.
@@ -21,7 +25,7 @@ export const fetchGamesFromRemote = async (
 ) => {
     try {
         const response = await axios.get(
-            `http://localhost:3001/api/games`, 
+            `${backendUrl}/${gamesUrl}`, 
             {
                 params: {
                     search: query,

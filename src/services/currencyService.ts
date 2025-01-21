@@ -1,6 +1,7 @@
 import axios from 'axios';
+import config from '../config/config';	
 
-const currencyUrl = process.env['CURRENCY_API'];
+const env = 'development';
 
 /**
  * Fetches the exchange rate for the specified currency and converts the balance.
@@ -12,7 +13,7 @@ const currencyUrl = process.env['CURRENCY_API'];
 export const convertCurrency = async (currency: string, balance: number) => {
     try {
         // Fetch exchange rates from the API
-        const response = await axios.get(`${currencyUrl}`);
+        const response = await axios.get(`${config[env].CURRENCY_API}`);
         const rate = response.data.rates[currency];
 
         // Validate the rate

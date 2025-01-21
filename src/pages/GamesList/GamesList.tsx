@@ -215,7 +215,7 @@ export const GameList = () => {
                     <option value={Currencies.JPY}>{Currencies.JPY}</option>
                 </select>
                 <button 
-                    className="btn btn-primary" 
+                    className="btn btn-primary w-25" 
                     onClick={convertBalance}
                 >
                     Convert Balance
