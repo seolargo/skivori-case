@@ -1,58 +1,60 @@
+// React and hooks
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+
+// Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+// Services
+import { fetchGamesFromRemote } from '../../services/gamesService';
+import { convertCurrency } from '../../services/currencyService';
+
 export const GameList = () => {
-    const [allGames, setAllGames] = useState([]); // State for all games
-    const [filteredGames, setFilteredGames] = useState([]); // State for filtered games
-    const [loading, setLoading] = useState(false);
+    // State for all games
+    const [allGames, setAllGames] = useState([]); 
+
+    // State for filtered games
+    const [filteredGames, setFilteredGames] = useState([]); 
+
+    // State to store search query
+    const [search, setSearch] = useState<string>(''); 
+
+    // State for no results found
+    const [notFound, setNotFound] = useState<boolean>(false); 
+
+    // Current balance in default currency
+    const [balance, setBalance] = useState<number>(100); 
+
+    // Converted balance
+    const [convertedBalance, setConvertedBalance] = useState(null); 
+
+    // Target currency
+    const [currency, setCurrency] = useState('EUR'); 
+
+    // Exchange rate error
+    const [exchangeRateError, setExchangeRateError] = useState(null); 
+
+    // Loading and error states
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState(null);
-    const [search, setSearch] = useState(''); // State to store search query
-    const [notFound, setNotFound] = useState(false); // State for no results
 
-    // Pagination states
-    const [page, setPage] = useState(1); // Current page
-    const [total, setTotal] = useState(0); // Total items
-    const [limit] = useState(10); // Items per page (fixed for now)
+    // Current page for pagination
+    const [page, setPage] = useState<number>(1); 
 
-    // Fetch games from the API
-    const fetchGames = async (query = '', page = 1) => {
-        setLoading(true);
-        setError(null);
-        setNotFound(false);
+    // Total items for pagination
+    const [total, setTotal] = useState<number>(0); 
 
-        try {
-            const response = await axios.get('http://localhost:3001/api/games', {
-                params: {
-                    search: query,
-                    page,
-                    limit,
-                },
-            });
-
-            setAllGames(response.data.allGames); // Set all games
-            setFilteredGames(response.data.paginatedGames); // Set paginated games
-            setTotal(response.data.total); // Set total items
-
-            // Handle "no results" for search
-            if (query && response.data.paginatedGames.length === 0) {
-                setNotFound(true);
-            }
-        } catch (err) {
-            setError('An error occurred while fetching games. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Items per page (fixed for now)
+    const [limit] = useState<number>(10); 
 
     // Fetch games on search input change
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            fetchGames(search.trim(), 1); // Reset to page 1 on new search
+            // Reset to page 1 on new search
+            fetchGames(search.trim(), 1); 
             setPage(1);
-        }, 500); // Add a debounce for better performance
+        }, 500);
 
-        return () => clearTimeout(delayDebounceFn); // Cleanup
+        return () => clearTimeout(delayDebounceFn);
     }, [search]);
 
     // Fetch games when the page changes
@@ -60,10 +62,117 @@ export const GameList = () => {
         fetchGames(search.trim(), page);
     }, [page]);
 
-    // Handle page change
+    /**
+     * Fetches games from the backend and updates the application state accordingly.
+     * Handles loading, error, and not-found states during the fetch process.
+     *
+     * @async
+     * @function
+     * @param {string} [query=''] - The search query to filter games (default is an empty string for no filtering).
+     * @param {number} [page=1] - The page number for pagination (default is 1).
+     * @throws {Error} - Throws an error if the request fails or encounters an issue.
+     */
+    const fetchGames = async (query = '', page = 1) => {
+        // Set values for loading, error, and not found states
+        setLoading(true);
+        setError(null);
+        setNotFound(false);
+
+        try {
+            // Fetch games from the remote server
+            fetchGamesFromRemote(query, page, limit)
+                .then((response) => {
+                    // Set all games
+                    setAllGames(response.data.allGames); 
+
+                    // Set paginated games
+                    setFilteredGames(response.data.paginatedGames); 
+
+                    // Set total items
+                    setTotal(response.data.total); 
+
+                    // Check if a search query exists and if no games match the query
+                    handleNotFound(
+                        query, 
+                        response.data.paginatedGames, 
+                        setNotFound
+                    );
+                })
+                .catch((err) => {
+                    setError('An error occurred while fetching games. Please try again.', err);
+                });
+        } catch (err) {
+            setError('An error occurred while fetching games. Please try again.', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
+     * Determines whether the "not found" state should be set to true.
+     * @param {string} query - The search query provided by the user.
+     * @param {Array} paginatedGames - The list of games returned from the backend.
+     * @returns {boolean} - Returns true if no games match the query; otherwise, false.
+     */
+    const shouldSetNotFound = (query, paginatedGames) => {
+        return query && paginatedGames.length === 0;
+    };
+
+    /**
+     * Updates the notFound state based on the search query and the result.
+     * @param {string} query - The search query provided by the user.
+     * @param {Array} paginatedGames - The list of games returned from the backend.
+     * @param {Function} setNotFound - The state setter function for the notFound state.
+     */
+    const handleNotFound = (query, paginatedGames, setNotFound) => {
+        setNotFound(shouldSetNotFound(query, paginatedGames));
+    };
+
+    /**
+     * Updates the current page state when the user navigates to a new page.
+     * Ensures the new page is within valid bounds (greater than 0 and less than or equal to the total number of pages).
+     * @param {number} newPage - The page number to navigate to.
+     */
     const handlePageChange = (newPage) => {
-        if (newPage > 0 && newPage <= Math.ceil(total / limit)) {
-            setPage(newPage);
+        // Check if the new page is valid (greater than 0 and within the total number of pages)
+        if (isValidPage(newPage, total, limit)) {
+            // Update the page state
+            setPage(newPage); 
+        }
+    };
+
+    /**
+     * Checks if the given page number is within valid bounds.
+     * @param {number} newPage - The page number to validate.
+     * @param {number} total - The total number of items.
+     * @param {number} limit - The number of items per page.
+     * @returns {boolean} - Returns true if the page number is valid, otherwise false.
+     */
+    const isValidPage = (newPage, total, limit) => {
+        return newPage > 0 && newPage <= Math.ceil(total / limit);
+    };
+
+    /**
+     * Converts the user's balance to the selected currency.
+     * Calls the currency conversion service and updates the converted balance state.
+     * Handles any errors and sets an appropriate error message in the state.
+     *
+     * @async
+     * @function
+     * @throws {Error} - Throws an error if the currency conversion fails or the service is unavailable.
+     */
+    const convertBalance = async () => {
+        setExchangeRateError(null);
+        setConvertedBalance(null);
+
+        try {
+            // Call the service
+            const converted = await convertCurrency(currency, balance); 
+
+            // Update the converted balance
+            setConvertedBalance(converted); 
+        } catch (err) {
+            setExchangeRateError('Failed to fetch exchange rate. Please try again.', err);
         }
     };
 
@@ -80,6 +189,38 @@ export const GameList = () => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
+            </div>
+
+            {/* Display Current Balance */}
+            <div className="mb-4">
+                <h3>Current Balance: {balance} USD</h3>
+
+                {/* Currency Conversion */}
+                <div className="d-flex align-items-center">
+                    <select
+                        className="form-select me-2"
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                    >
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="INR">INR</option>
+                        <option value="JPY">JPY</option>
+                    </select>
+                    <button className="btn btn-primary" onClick={convertBalance}>
+                        Convert Balance
+                    </button>
+                </div>
+
+                {/* Converted Balance */}
+                {convertedBalance && (
+                    <p className="mt-2">Converted Balance: {convertedBalance}</p>
+                )}
+
+                {/* Exchange Rate Error */}
+                {exchangeRateError && (
+                    <div className="alert alert-danger mt-2">{exchangeRateError}</div>
+                )}
             </div>
 
             {/* Loading Message */}
