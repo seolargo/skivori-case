@@ -413,49 +413,65 @@ export const GameList = () => {
     RenderFilteredGames.displayName = 'RenderFilteredGames';
 
     return (
-        <div className="container py-5">
-            <h1 className="text-center mb-4">
+        <div className="game-list container py-5">
+            <h1 className="game-list__title text-center mb-4">
                 Game List
             </h1>
 
+            {/* Balance Section */}
             {memoizedBalanceSection}
 
-            {/* Search input */}
-            <div className="mb-4">
+            {/* Search Bar */}
+            <div className="game-list__search mb-4">
                 <input
                     key="search-input"
                     type="text"
-                    className="form-control"
+                    className="form-control game-list__search-input"
                     placeholder="Search games..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
 
-            {loading && 
-                <LoadingMessage />
-            }
-
-            {error !== "" && 
-                <ErrorMessage error={error} />
-            }
-
-            {showNotFound && (
-                <NoGamesFound search={search} />
+            {/* Loading State */}
+            {loading && (
+                <div className="game-list__loading text-center my-3">
+                    <LoadingMessage />
+                </div>
             )}
 
-            {showFilteredGames && 
-                memoizedFilteredGames
-            }
+            {/* Error Message */}
+            {error !== "" && (
+                <div className="game-list__error alert alert-danger text-center">
+                    <ErrorMessage error={error} />
+                </div>
+            )}
 
-            {displayContent && 
-                <Pagination
-                    currentPage={page}
-                    totalItems={total}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={handlePageChange}
-                />
-            }
+            {/* No Games Found */}
+            {showNotFound && (
+                <div className="game-list__no-results alert alert-warning text-center">
+                    <NoGamesFound search={search} />
+                </div>
+            )}
+
+            {/* Filtered Games */}
+            {showFilteredGames && (
+                <div className="game-list__games row mb-5">
+                    {memoizedFilteredGames}
+                </div>
+            )}
+
+            {/* Pagination */}
+            {displayContent && (
+                <div className="game-list__pagination">
+                    <Pagination
+                        currentPage={page}
+                        totalItems={total}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+            )}
         </div>
     );
 };

@@ -1,100 +1,104 @@
+/* Genel Alan */
 .game-list {
   padding: 20px;
   font-family: Arial, sans-serif;
 }
 
+/* Navigasyon Menüsü */
 nav {
-  height: 60px; /* Fixed height */
-  position: sticky; /* Optional: Keeps nav bar in place */
-  top: 0;
-  z-index: 10;
-}
-
-.container {
-  min-height: 300px; /* Ensures a stable layout before content loads */
-}
-
-.games-container {
+  height: 60px; /* Sabit yükseklik */
+  position: sticky; /* Sayfa kaydırıldığında sabit kalır */
+  top: 0; /* Sayfanın en üstünde kalır */
+  z-index: 10; /* Üstte görünmesini sağlar */
+  background-color: #333; /* Arkaplan rengi */
+  color: #fff; /* Yazı rengi */
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  min-height: 400px; /* Reserve space for game items */
-}
-
-img {
-  width: 100px; /* Example width */
-  height: auto; /* Maintain aspect ratio */
-}
-
-.game-item {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  width: 200px;
-  text-align: center;
-  background-color: #f9f9f9;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.card-img-top {
-  width: 100%;
-  height: 200px; /* Reserve space for images */
-  object-fit: cover;
-}
-
-.search-input {
-  height: 50px; /* Ensure consistent height */
-  font-size: 16px; /* Prevent resizing due to larger text */
+  align-items: center;
+  justify-content: space-between;
 }
 
 nav a {
-  padding: 10px 15px; /* Prevent resizing due to padding changes */
-  display: inline-block;
+  padding: 10px 15px; /* Bağlantılar arası boşluk */
+  color: #fff;
+  text-decoration: none; /* Alt çizgiyi kaldırır */
 }
 
-nav {
-  height: 60px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+nav a:hover {
+  color: #ff0; /* Üzerine gelindiğinde sarı olur */
 }
 
-.card-body {
-  min-height: 100px; /* Reserve space for text */
+/* Ana Konteyner */
+.container {
+  min-height: 300px; /* Yükseklik yedeği */
 }
 
-.pagination {
-  min-height: 50px; /* Reserve space for pagination */
+/* Oyun Listeleme */
+.games-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-wrap: wrap; /* Oyunlar birden fazla satıra taşar */
+  gap: 20px; /* Kartlar arası boşluk */
+  min-height: 400px; /* Yükseklik yedeği */
 }
 
-.card {
-  width: 100%;
-  height: 300px; /* Set fixed card height */
+.game-item {
+  border: 1px solid #ccc; /* Kenarlık */
+  border-radius: 8px; /* Yuvarlak köşeler */
+  padding: 10px; /* İç boşluk */
+  width: 200px; /* Kart genişliği */
+  text-align: center; /* Metni ortala */
+  background-color: #f9f9f9; /* Kart arkaplan rengi */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hafif gölge */
+}
+
+.game-item:hover {
+  transform: scale(1.05); /* Kartın büyümesi */
   transition: transform 0.3s ease-in-out;
 }
 
-.card:hover {
-  transform: scale(1.05);
-  transition: transform 0.3s;
+/* Görseller */
+img, .game-thumbnail {
+  width: 100%; /* Görsel genişliği kartı kaplar */
+  height: 200px; /* Görsel yüksekliği sabit */
+  object-fit: cover; /* Görselin kartı doldurmasını sağlar */
+  border-radius: 4px; /* Yuvarlatılmış köşeler */
 }
 
-.game-thumbnail {
-  width: 100%;
-  height: auto;
-  border-radius: 4px;
-}
-
-.game-title {
+/* Kart Detayları */
+.card-body {
+  min-height: 100px; /* Metin için alan */
   margin-top: 10px;
-  font-size: 16px;
 }
 
+.card-title, .game-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Arama Alanı */
+.search-input {
+  width: 100%; /* Tam genişlik */
+  height: 50px; /* Sabit yükseklik */
+  padding: 10px; /* İç boşluk */
+  font-size: 16px; /* Yazı boyutu */
+  border: 1px solid #ccc; /* Kenarlık */
+  border-radius: 4px; /* Yuvarlak köşeler */
+}
+
+/* Sayfalama */
+.pagination {
+  min-height: 50px; /* Yükseklik yedeği */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+/* Yükleme ve Hata Mesajları */
 .loading {
   text-align: center;
   font-size: 18px;
+  color: #666;
 }
 
 .error {
@@ -103,8 +107,9 @@ nav {
   font-size: 18px;
 }
 
+/* Özel Font */
 @font-face {
   font-family: 'CustomFont';
   src: url('/path-to-font.woff2') format('woff2');
-  font-display: swap;
+  font-display: swap; /* Fallback font kullanımı */
 }
