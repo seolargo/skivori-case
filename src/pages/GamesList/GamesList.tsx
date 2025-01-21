@@ -2,7 +2,8 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 // React and hooks
-import { useEffect, useState } from 'react';
+import React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import Pagination from '../../components/Pagination/Pagination';
 
@@ -53,6 +54,8 @@ export const GameList = () => {
 
     // Fetch games on search input change
     useEffect(() => {
+        console.log('useEffect triggered for search input');
+
         const delayDebounceFn = setTimeout(() => {
             // Reset to page 1 on new search
             fetchGames(search.trim(), 1); 
@@ -64,6 +67,8 @@ export const GameList = () => {
 
     // Fetch games when the page changes
     useEffect(() => {
+        console.log('useEffect triggered for page change');
+
         fetchGames(search.trim(), page);
     }, [page]);
 
@@ -80,6 +85,8 @@ export const GameList = () => {
      * @throws {Error} - Throws an error if the request fails or encounters an issue.
      */
     const fetchGames = async (query = '', page = 1) => {
+        console.log('fetchGames function is called');
+
         // Set values for loading, error, and not found states
         setLoading(true);
         setError("");
@@ -121,6 +128,8 @@ export const GameList = () => {
      * @returns {boolean} - Returns true if no games match the query; otherwise, false.
      */
     const shouldSetNotFound = (query: string, paginatedGames = []) => {
+        console.log('shouldSetNotFound function is called');
+
         return query && paginatedGames.length === 0;
     };
 
@@ -135,6 +144,8 @@ export const GameList = () => {
         paginatedGames = [], 
         setNotFound: any
     ) => {
+        console.log('handleNotFound function is called');
+
         setNotFound(
             shouldSetNotFound(query, paginatedGames)
         );
@@ -150,6 +161,8 @@ export const GameList = () => {
      * @throws {Error} - Throws an error if the currency conversion fails or the service is unavailable.
      */
     const convertBalance = async () => {
+        console.log('convertBalance function is called');
+        
         setExchangeRateError("");
         setConvertedBalance("");
 
@@ -165,23 +178,6 @@ export const GameList = () => {
     };
 
     /**
-     * Renders the search bar.
-     * @param {string} search - The current search query.
-     * @param {Function} setSearch - Function to update the search query.
-     */
-    const renderSearchBar = (search: string, setSearch: any) => (
-        <div className="mb-4">
-            <input
-                type="text"
-                className="form-control"
-                placeholder="Search games..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-            />
-        </div>
-    );
-
-    /**
      * Renders the current balance and currency conversion controls.
      * 
      * @param {number} balance - Current balance in USD.
@@ -191,79 +187,98 @@ export const GameList = () => {
      * @param {string} convertedBalance - Converted balance to display.
      * @param {string} exchangeRateError - Error message for exchange rate issues.
      */
-    const renderBalanceSection = (
+    const RenderBalanceSection = React.memo(({
+        balance, 
+        currency, 
+        setCurrency,
+        convertBalance, 
+        convertedBalance, 
+        exchangeRateError
+    }: {
         balance: number, 
-        currency: string, 
-        setCurrency: any, 
-        convertBalance: any, 
+        currency: string,
+        setCurrency: any;
+        convertBalance: () => void, 
         convertedBalance: string, 
         exchangeRateError: string
-    ) => (
-        <div className="mb-4">
-            <h3>
-                Current Balance: {balance} {Currencies.USD}
-            </h3>
-            <div className="d-flex align-items-center">
-                <select
-                    className="form-select me-2"
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                >
-                    <option value={Currencies.EUR}>{Currencies.EUR}</option>
-                    <option value={Currencies.GBP}>{Currencies.GBP}</option>
-                    <option value={Currencies.INR}>{Currencies.INR}</option>
-                    <option value={Currencies.JPY}>{Currencies.JPY}</option>
-                </select>
-                <button 
-                    className="btn btn-primary w-25" 
-                    onClick={convertBalance}
-                >
-                    Convert Balance
-                </button>
-            </div>
-            {convertedBalance && 
-                <p className="mt-2">
-                    Converted Balance: {convertedBalance}
-                </p>
-            }
-            {exchangeRateError && 
-                <div className="alert alert-danger mt-2">
-                    {exchangeRateError}
+    }) => {
+        console.log('renderBalanceSection function is called');
+
+        return (
+            <div className="mb-4">
+                <h3>
+                    Current Balance: {balance} {Currencies.USD}
+                </h3>
+                <div className="d-flex align-items-center">
+                    <select
+                        className="form-select me-2"
+                        value={currency}
+                        onChange={setCurrency}
+                    >
+                        <option value={Currencies.EUR}>{Currencies.EUR}</option>
+                        <option value={Currencies.GBP}>{Currencies.GBP}</option>
+                        <option value={Currencies.INR}>{Currencies.INR}</option>
+                        <option value={Currencies.JPY}>{Currencies.JPY}</option>
+                    </select>
+                    <button 
+                        className="btn btn-primary w-25" 
+                        onClick={convertBalance}
+                    >
+                        Convert Balance
+                    </button>
                 </div>
-            }
-        </div>
-    );
+                {convertedBalance && 
+                    <p className="mt-2">
+                        Converted Balance: {convertedBalance}
+                    </p>
+                }
+                {exchangeRateError && 
+                    <div className="alert alert-danger mt-2">
+                        {exchangeRateError}
+                    </div>
+                }
+            </div>
+        )
+    });
 
     /**
      * Renders the list of filtered games.
      * @param {Array} filteredGames - List of games matching the search query.
      */
-    const renderFilteredGames = (filteredGames: Array<any> = []) => (
-        <div className="row mb-5">
-            <h2>
-                Filtered Results:
-            </h2>
-            {filteredGames.map((game) => (
-                <div 
-                    key={game?.id} 
-                    className="col-sm-6 col-md-4 col-lg-3 mb-4"
-                >
-                    <div className="card shadow-sm">
-                        <img
-                            src={game?.thumb?.url}
-                            alt={game?.name}
-                            className="card-img-top"
-                        />
-                        <div className="card-body">
-                            <h5 className="card-title text-center">
-                                {game?.name}
-                            </h5>
+    const RenderFilteredGames = React.memo(({ filteredGames }: { filteredGames: Array<any> }) => {
+        console.log('renderFilteredGames function is called');
+
+        if (!Array.isArray(filteredGames)) {
+            return <div>No games available.</div>;
+        }
+
+        return (
+            <div className="row mb-5">
+                <h2>
+                    Filtered Results:
+                </h2>
+                {filteredGames.map((game) => (
+                    <div 
+                        key={game?.id} 
+                        className="col-sm-6 col-md-4 col-lg-3 mb-4"
+                    >
+                        <div className="card shadow-sm">
+                            <img
+                                src={game?.thumb?.url}
+                                alt={game?.name}
+                                className="card-img-top"
+                            />
+                            <div className="card-body">
+                                <h5 className="card-title text-center">
+                                    {game?.name}
+                                </h5>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ))}
-        </div>
-    );    
+                ))}
+            </div>
+        )
+    });    
 
     /**
      * Determines if the "not found" message should be displayed.
@@ -279,6 +294,8 @@ export const GameList = () => {
         error: string, 
         notFound: boolean
     ) => {
+        console.log('shouldShowNotFound function is called');
+
         return !loading && !error && notFound;
     };
 
@@ -296,6 +313,8 @@ export const GameList = () => {
         notFound: boolean, 
         filteredGames = []
     ) => {
+        console.log('shouldShowFilteredGames function is called');
+        
         return !loading && !notFound && filteredGames.length > 0;
     };
 
@@ -308,6 +327,8 @@ export const GameList = () => {
      * @returns {boolean} - Returns true if content should be displayed.
      */
     const shouldDisplayContent = (loading: boolean, notFound: boolean) => {
+        console.log('shouldDisplayContent function is called');
+
         return !loading && !notFound;
     };
 
@@ -317,11 +338,15 @@ export const GameList = () => {
      * @param {string} props.search - The search query provided by the user.
      * @returns {JSX.Element} - JSX for the "No games found" alert.
      */
-    const NoGamesFound = ({ search } : { search: string }) => (
-        <div className="alert alert-warning text-center">
-            No games found for <strong>{search}</strong>
-        </div>
-    );
+    const NoGamesFound = React.memo(({ search } : { search: string }) => {
+        console.log('NoGamesFound component is rendered');
+
+        return (
+            <div className="alert alert-warning text-center">
+                No games found for <strong>{search}</strong>
+            </div>
+        )
+    });
 
     /**
      * Component to display an error message.
@@ -329,21 +354,59 @@ export const GameList = () => {
      * @param {string} props.error - The error message to display.
      * @returns {JSX.Element} - JSX for the error message.
      */
-    const ErrorMessage = ({ error } : { error: any }) => (
-        <div className="alert alert-danger text-center">
-            {error.message}
-        </div>
-    );
+    const ErrorMessage = React.memo(({ error } : { error: any }) => {
+        console.log('ErrorMessage component is rendered');
+
+        return (
+            <div className="alert alert-danger text-center">
+                {error.message}
+            </div>
+        )
+    });
 
     /**
      * Component to display a loading message.
      * @returns {JSX.Element} - JSX for the loading message.
      */
-    const LoadingMessage = () => (
-        <div className="text-center my-3">
-            Loading games...
-        </div>
-    );
+    const LoadingMessage = React.memo(() => {
+        console.log('LoadingMessage component is rendered');
+
+        return (
+            <div className="text-center my-3">
+                Loading games...
+            </div>
+        )
+    });
+
+    const memoizedBalanceSection = useMemo(() => (
+        <RenderBalanceSection
+            balance={balance}
+            currency={currency}
+            setCurrency={setCurrency}
+            convertBalance={convertBalance}
+            convertedBalance={convertedBalance}
+            exchangeRateError={exchangeRateError}
+        />
+    ), [balance, currency, convertedBalance, exchangeRateError]);
+
+    const memoizedFilteredGames = useMemo(() => (
+        <RenderFilteredGames filteredGames={filteredGames} />
+    ), [filteredGames]);
+
+    const showNotFound = useMemo(() => shouldShowNotFound(loading, error, notFound), [loading, error, notFound]);
+    const showFilteredGames = useMemo(() => shouldShowFilteredGames(loading, notFound, filteredGames), [loading, notFound, filteredGames]);
+    const displayContent = useMemo(() => shouldDisplayContent(loading, notFound), [loading, notFound]);
+
+    const handlePageChange = useCallback((newPage: number) => {
+        setPage(newPage);
+    }, []);
+
+    // Set the display names for the components
+    NoGamesFound.displayName = 'NoGamesFound';
+    LoadingMessage.displayName = 'LoadingMessage';
+    ErrorMessage.displayName = 'ErrorMessage';
+    RenderBalanceSection.displayName = 'RenderBalanceSection';
+    RenderFilteredGames.displayName = 'RenderFilteredGames';
 
     return (
         <div className="container py-5">
@@ -351,16 +414,19 @@ export const GameList = () => {
                 Game List
             </h1>
 
-            {renderSearchBar(search, setSearch)}
+            {memoizedBalanceSection}
 
-            {renderBalanceSection(
-                balance,
-                currency,
-                setCurrency,
-                convertBalance,
-                convertedBalance,
-                exchangeRateError
-            )}
+            {/* Search input */}
+            <div className="mb-4">
+                <input
+                    key="search-input"
+                    type="text"
+                    className="form-control"
+                    placeholder="Search games..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
             {loading && 
                 <LoadingMessage />
@@ -370,20 +436,20 @@ export const GameList = () => {
                 <ErrorMessage error={error} />
             }
 
-            {shouldShowNotFound(loading, error, notFound) && (
+            {showNotFound && (
                 <NoGamesFound search={search} />
             )}
 
-            {shouldShowFilteredGames(loading, notFound, filteredGames) && 
-                renderFilteredGames(filteredGames)
+            {showFilteredGames && 
+                memoizedFilteredGames
             }
 
-            {shouldDisplayContent(loading, notFound) && 
+            {displayContent && 
                 <Pagination
                     currentPage={page}
                     totalItems={total}
                     itemsPerPage={itemsPerPage}
-                    onPageChange={(newPage) => setPage(newPage)}
+                    onPageChange={handlePageChange}
                 />
             }
         </div>
