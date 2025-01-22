@@ -1,4 +1,7 @@
-export const config = {
+import { Config } from "./interfaces/interfaces";
+
+export const config: Config = {
+    environment: "development", // development || production
     development: {
         BACKEND_API: 'http://localhost:3001/api',
         GAMES_URL: "games",

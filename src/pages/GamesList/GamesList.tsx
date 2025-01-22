@@ -13,6 +13,7 @@ import { convertCurrency } from '../../services/currencyService';
 import { Currencies } from '../../enums/enums';
 import sanitizeInput from '../../utils/sanitizeInput';
 import { Game } from './interfaces/interface';
+import devLog from '../../utils/devLog';
 
 export const GameList = () => {
     // Current balance in default currency
@@ -53,7 +54,7 @@ export const GameList = () => {
 
     // Fetch games on search input change
     useEffect(() => {
-        console.log('useEffect triggered for search input');
+        devLog('useEffect triggered for search input');
 
         const delayDebounceFn = setTimeout(() => {
             // Reset to page 1 on new search
@@ -66,7 +67,7 @@ export const GameList = () => {
 
     // Fetch games when the page changes
     useEffect(() => {
-        console.log('useEffect triggered for page change');
+        devLog('useEffect triggered for page change');
 
         fetchGames(search.trim(), page);
     }, [page]);
@@ -84,7 +85,7 @@ export const GameList = () => {
      * @throws {Error} - Throws an error if the request fails or encounters an issue.
      */
     const fetchGames = async (query = '', page = 1) => {
-        console.log('fetchGames function is called');
+        devLog('fetchGames function is called');
 
         // Sanitize the inputs
         const sanitizedInputs = sanitizeInput(
@@ -142,7 +143,7 @@ export const GameList = () => {
      * @returns {boolean} - Returns true if no games match the query; otherwise, false.
      */
     const shouldSetNotFound = (query = "", paginatedGames = []) => {
-        console.log('shouldSetNotFound function is called');
+        devLog('shouldSetNotFound function is called');
 
         const { 
             query: sanitizedQuery, 
@@ -166,7 +167,7 @@ export const GameList = () => {
         paginatedGames = [], 
         setNotFound: React.Dispatch<React.SetStateAction<boolean>>
     ) => {
-        console.log('handleNotFound function is called');
+        devLog('handleNotFound function is called');
 
         const { 
             query: sanitizedQuery, 
@@ -191,7 +192,7 @@ export const GameList = () => {
      * @throws {Error} - Throws an error if the currency conversion fails or the service is unavailable.
      */
     const convertBalance = async () => {
-        console.log('convertBalance function is called');
+        devLog('convertBalance function is called');
         
         setExchangeRateError("");
         setConvertedBalance("");
@@ -247,7 +248,7 @@ export const GameList = () => {
             }
         );
 
-        console.log('renderBalanceSection function is called');
+        devLog('renderBalanceSection function is called');
 
         return (
             <div className="mb-4">
@@ -293,7 +294,7 @@ export const GameList = () => {
     const RenderFilteredGames = React.memo(({ filteredGames = [] }: { filteredGames: Game[] }) => {
         const sanitizedGames = sanitizeInput(filteredGames, []);
 
-        console.log('renderFilteredGames function is called');
+        devLog('renderFilteredGames function is called');
 
         return (
             <div className="row mb-5">
@@ -341,7 +342,7 @@ export const GameList = () => {
         error = "", 
         notFound = false
     ) => {
-        console.log('shouldShowNotFound function is called');
+        devLog('shouldShowNotFound function is called');
 
         return !loading && !error && notFound;
     };
@@ -360,7 +361,7 @@ export const GameList = () => {
         notFound = false, 
         filteredGames: Game[] = []
     ) => {
-        console.log('shouldShowFilteredGames function is called');
+        devLog('shouldShowFilteredGames function is called');
         
         return !loading && !notFound && filteredGames.length > 0;
     };
@@ -374,7 +375,7 @@ export const GameList = () => {
      * @returns {boolean} - Returns true if content should be displayed.
      */
     const shouldDisplayContent = (loading = false, notFound = false) => {
-        console.log('shouldDisplayContent function is called');
+        devLog('shouldDisplayContent function is called');
 
         return !loading && !notFound;
     };
@@ -386,7 +387,7 @@ export const GameList = () => {
      * @returns {JSX.Element} - JSX for the "No games found" alert.
      */
     const NoGamesFound = React.memo(({ search } : { search: string }) => {
-        console.log('NoGamesFound component is rendered');
+        devLog('NoGamesFound component is rendered');
 
         return (
             <div className="alert alert-warning text-center">
@@ -404,7 +405,7 @@ export const GameList = () => {
      * @returns {JSX.Element} - JSX for the error message.
      */
     const ErrorMessage = React.memo(({ error }: { error: Error | { message: string } | string }) => {
-        console.log('ErrorMessage component is rendered');
+        devLog('ErrorMessage component is rendered');
     
         // Determine the message to display
         const errorMessage =
@@ -422,7 +423,7 @@ export const GameList = () => {
      * @returns {JSX.Element} - JSX for the loading message.
      */
     const LoadingMessage = React.memo(() => {
-        console.log('LoadingMessage component is rendered');
+        devLog('LoadingMessage component is rendered');
 
         return (
             <div className="text-center my-3">

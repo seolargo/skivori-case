@@ -2,11 +2,11 @@ import axios from 'axios';
 
 import config from '../config/config';	
 
-const env = 'development';
+const env = config.environment || 'development';
 
 // Base backend URL and endpoints
-const backendUrl = config[env].BACKEND_API;
-const gamesUrl = config[env].GAMES_URL;
+const backendUrl = config[env as "development"].BACKEND_API ?? '';
+const gamesUrl = config[env as "development"].GAMES_URL ?? '';
 
 /**
  * Fetch games from the backend.
