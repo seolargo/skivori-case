@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-
 // React and hooks
 import React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,6 +11,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { fetchGamesFromRemote } from '../../services/gamesService';
 import { convertCurrency } from '../../services/currencyService';
 import { Currencies } from '../../enums/enums';
+import sanitizeInput from '../../utils/sanitizeInput';
+import { Game } from './interfaces/interface';
 
 export const GameList = () => {
     // Current balance in default currency
@@ -22,7 +21,7 @@ export const GameList = () => {
     const itemsPerPage = 10;
     
     // State for filtered games
-    const [filteredGames, setFilteredGames] = useState([]); 
+    const [filteredGames, setFilteredGames] = useState<Game[]>([]); 
 
     // State to store search query
     const [search, setSearch] = useState<string>(''); 
@@ -87,6 +86,17 @@ export const GameList = () => {
     const fetchGames = async (query = '', page = 1) => {
         console.log('fetchGames function is called');
 
+        // Sanitize the inputs
+        const sanitizedInputs = sanitizeInput(
+            { query, page }, 
+            { query: '', page: 1 }
+        );
+
+        const { 
+            query: sanitizedQuery, 
+            page: sanitizedPage 
+        } = sanitizedInputs;
+
         // Set values for loading, error, and not found states
         setLoading(true);
         setError("");
@@ -94,7 +104,11 @@ export const GameList = () => {
 
         try {
             // Fetch games from the remote server
-            fetchGamesFromRemote(query, page, limit)
+            fetchGamesFromRemote(
+                sanitizedQuery, 
+                sanitizedPage, 
+                limit
+            )
                 .then((response) => {
                     // Set paginated games
                     setFilteredGames(response?.paginatedGames); 
@@ -127,10 +141,18 @@ export const GameList = () => {
      * 
      * @returns {boolean} - Returns true if no games match the query; otherwise, false.
      */
-    const shouldSetNotFound = (query: string, paginatedGames = []) => {
+    const shouldSetNotFound = (query = "", paginatedGames = []) => {
         console.log('shouldSetNotFound function is called');
 
-        return query && paginatedGames.length === 0;
+        const { 
+            query: sanitizedQuery, 
+            paginatedGames: sanitizedGames 
+        } = sanitizeInput(
+            { query, paginatedGames },
+            { query: "", paginatedGames: [] }
+        );
+
+        return sanitizedQuery && sanitizedGames.length === 0;
     };
 
     /**
@@ -140,14 +162,22 @@ export const GameList = () => {
      * @param {Function} setNotFound - The state setter function for the notFound state.
      */
     const handleNotFound = (
-        query: string, 
+        query = "", 
         paginatedGames = [], 
-        setNotFound: any
+        setNotFound: React.Dispatch<React.SetStateAction<boolean>>
     ) => {
         console.log('handleNotFound function is called');
 
+        const { 
+            query: sanitizedQuery, 
+            paginatedGames: sanitizedGames 
+        } = sanitizeInput(
+            { query, paginatedGames },
+            { query: "", paginatedGames: [] }
+        );
+
         setNotFound(
-            shouldSetNotFound(query, paginatedGames)
+            Boolean(shouldSetNotFound(sanitizedQuery, sanitizedGames))
         );
     };
 
@@ -187,21 +217,36 @@ export const GameList = () => {
      * @param {string} convertedBalance - Converted balance to display.
      * @param {string} exchangeRateError - Error message for exchange rate issues.
      */
-    const RenderBalanceSection = React.memo(({
-        balance, 
-        currency, 
-        setCurrency,
-        convertBalance, 
-        convertedBalance, 
-        exchangeRateError
-    }: {
-        balance: number, 
-        currency: string,
-        setCurrency: any;
-        convertBalance: () => void, 
-        convertedBalance: string, 
-        exchangeRateError: string
+    const RenderBalanceSection = React.memo((props: {
+        balance?: number;
+        currency?: string;
+        setCurrency?: React.Dispatch<React.SetStateAction<Currencies>>;
+        convertBalance?: () => void;
+        convertedBalance?: string;
+        exchangeRateError?: string;
     }) => {
+        const {
+            balance,
+            currency,
+            setCurrency,
+            convertBalance,
+            convertedBalance,
+            exchangeRateError,
+        } = sanitizeInput(
+            props, {
+                balance: 0,
+                currency: Currencies.EUR,
+                setCurrency: () => {
+                    console.warn("Default setCurrency function invoked. Override this method.");
+                },
+                convertBalance: () => {
+                    console.warn("Default convertBalance function invoked. Override this method.");
+                },
+                convertedBalance: "",
+                exchangeRateError: "",
+            }
+        );
+
         console.log('renderBalanceSection function is called');
 
         return (
@@ -245,27 +290,25 @@ export const GameList = () => {
      * Renders the list of filtered games.
      * @param {Array} filteredGames - List of games matching the search query.
      */
-    const RenderFilteredGames = React.memo(({ filteredGames }: { filteredGames: Array<any> }) => {
-        console.log('renderFilteredGames function is called');
+    const RenderFilteredGames = React.memo(({ filteredGames = [] }: { filteredGames: Game[] }) => {
+        const sanitizedGames = sanitizeInput(filteredGames, []);
 
-        if (!Array.isArray(filteredGames)) {
-            return <div>No games available.</div>;
-        }
+        console.log('renderFilteredGames function is called');
 
         return (
             <div className="row mb-5">
                 <h2>
                     Filtered Results:
                 </h2>
-                {filteredGames.map((game) => (
+                {sanitizedGames.map((game: Game) => (
                     <div 
                         key={game?.id} 
                         className="col-sm-6 col-md-4 col-lg-3 mb-4"
                     >
                         <div className="card shadow-sm">
                             <img
-                                src={game?.thumb?.url}
-                                alt={game?.name}
+                                src={game.thumb.url}
+                                alt={game.title}
                                 className="card-img-top"
                                 loading="lazy"
                                 width="300" /* Reserve explicit space */
@@ -274,7 +317,7 @@ export const GameList = () => {
                             />
                             <div className="card-body">
                                 <h5 className="card-title text-center">
-                                    {game?.name}
+                                    {game.title}
                                 </h5>
                             </div>
                         </div>
@@ -294,9 +337,9 @@ export const GameList = () => {
      * @returns {boolean} - Returns true if the "not found" message should be displayed.
      */
     const shouldShowNotFound = (
-        loading: boolean, 
-        error: string, 
-        notFound: boolean
+        loading = false, 
+        error = "", 
+        notFound = false
     ) => {
         console.log('shouldShowNotFound function is called');
 
@@ -313,9 +356,9 @@ export const GameList = () => {
      * @returns {boolean} - Returns true if the filtered game list should be displayed.
      */
     const shouldShowFilteredGames = (
-        loading: boolean, 
-        notFound: boolean, 
-        filteredGames = []
+        loading = false, 
+        notFound = false, 
+        filteredGames: Game[] = []
     ) => {
         console.log('shouldShowFilteredGames function is called');
         
@@ -330,7 +373,7 @@ export const GameList = () => {
      * 
      * @returns {boolean} - Returns true if content should be displayed.
      */
-    const shouldDisplayContent = (loading: boolean, notFound: boolean) => {
+    const shouldDisplayContent = (loading = false, notFound = false) => {
         console.log('shouldDisplayContent function is called');
 
         return !loading && !notFound;
@@ -354,18 +397,24 @@ export const GameList = () => {
 
     /**
      * Component to display an error message.
+     * 
      * @param {Object} props - The component props.
      * @param {string} props.error - The error message to display.
+     * 
      * @returns {JSX.Element} - JSX for the error message.
      */
-    const ErrorMessage = React.memo(({ error } : { error: any }) => {
+    const ErrorMessage = React.memo(({ error }: { error: Error | { message: string } | string }) => {
         console.log('ErrorMessage component is rendered');
-
+    
+        // Determine the message to display
+        const errorMessage =
+            typeof error === 'string' ? error : 'message' in error ? error.message : 'An unknown error occurred';
+    
         return (
             <div className="alert alert-danger text-center">
-                {error.message}
+                {errorMessage}
             </div>
-        )
+        );
     });
 
     /**
