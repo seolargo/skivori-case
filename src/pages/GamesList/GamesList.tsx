@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // React and hooks
 import React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -111,16 +113,18 @@ export const GameList = () => {
                 limit
             )
                 .then((response) => {
+                    console.log("response: ", response);
+
                     // Set paginated games
-                    setFilteredGames(response?.paginatedGames); 
+                    setFilteredGames(response?.data?.paginatedGames); 
 
                     // Set total items
-                    setTotal(response?.total); 
+                    setTotal(response?.data?.total); 
 
                     // Check if a search query exists and if no games match the query
                     handleNotFound(
                         query, 
-                        response?.paginatedGames, 
+                        response?.data?.paginatedGames, 
                         setNotFound
                     );
                 })
@@ -308,8 +312,8 @@ export const GameList = () => {
                     >
                         <div className="card shadow-sm">
                             <img
-                                src={game.thumb.url}
-                                alt={game.title}
+                                src={game?.thumb?.url}
+                                alt={game?.title}
                                 className="card-img-top"
                                 loading="lazy"
                                 width="300" /* Reserve explicit space */
@@ -318,7 +322,7 @@ export const GameList = () => {
                             />
                             <div className="card-body">
                                 <h5 className="card-title text-center">
-                                    {game.title}
+                                    {game?.title}
                                 </h5>
                             </div>
                         </div>

@@ -1,6 +1,5 @@
-import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import GameList from '../src/pages/GamesList/GamesList.tsx';
+import GameList from './pages/GamesList/GamesList';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function App() {

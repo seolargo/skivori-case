@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import axios from 'axios';
 
 import config from '../config/config';	
@@ -24,16 +26,15 @@ export const fetchGamesFromRemote = async (
     limit = 10
 ) => {
     try {
-        const response = await axios.get(
-            `${backendUrl}/${gamesUrl}`, 
-            {
-                params: {
-                    search: query,
-                    page,
-                    limit,
-                },
-            }
-        );
+        const endpoint = query ? `${backendUrl}/${gamesUrl}/search` : `${backendUrl}/${gamesUrl}`;
+        const method = query ? 'post' : 'get';
+
+        const response = await axios({
+            method: method,
+            url: endpoint,
+            data: query ? { search: query, page, limit } : undefined,
+            params: !query ? { page, limit } : undefined,
+        });
 
         return response.data;
     } catch (error) {
