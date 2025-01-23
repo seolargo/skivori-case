@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const SlotMachine: React.FC = () => {
@@ -13,6 +13,7 @@ const SlotMachine: React.FC = () => {
   const [error, setError] = useState<string | null>(null); // Error messages
   const [spinCount, setSpinCount] = useState<number>(0); // Number of spins
 
+  // Function to handle spinning the slot machine
   const handleSpin = async () => {
     if (balance <= 0) {
       setError('Insufficient balance! Please reload or reset the game.');
@@ -24,9 +25,6 @@ const SlotMachine: React.FC = () => {
 
     try {
       const response = await axios.post('http://localhost:3001/api/slot/spin');
-
-      console.log("response: ", response);
-
       const { spinResult, reward, updatedBalance } = response.data.data;
 
       // Update the state with the results
@@ -52,6 +50,29 @@ const SlotMachine: React.FC = () => {
     }
   };
 
+  // Function to reset the balance and clear state
+  const handleReset = async () => {
+    setError(null);
+    try {
+      const response = await axios.post('http://localhost:3001/api/slot/reset');
+      const { balance } = response.data;
+
+      // Reset all state values to initial values
+      setBalance(balance);
+      setReward(0);
+      setResult([]);
+      setSpinHistory([]);
+      setSpinCount(0);
+    } catch (err) {
+      setError('Failed to reset the balance. Please try again.');
+    }
+  };
+
+  // Automatically reset balance on page refresh
+  useEffect(() => {
+    handleReset(); // Call handleReset when the component is mounted
+  }, []);
+
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h1>Slot Machine</h1>
@@ -68,22 +89,38 @@ const SlotMachine: React.FC = () => {
         {reward > 0 ? `You won ${reward} coins! 🎉` : result.length > 0 ? 'No win, better luck next time!' : ''}
       </p>
 
-      <button
-        onClick={handleSpin}
-        disabled={isSpinning || balance <= 0}
-        style={{
-          marginTop: '20px',
-          padding: '10px 20px',
-          fontSize: '1.2rem',
-          backgroundColor: isSpinning || balance <= 0 ? '#ddd' : '#007bff',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: isSpinning || balance <= 0 ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {isSpinning ? 'Spinning...' : 'Spin'}
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+        <button
+          onClick={handleSpin}
+          disabled={isSpinning || balance <= 0}
+          style={{
+            padding: '10px 20px',
+            fontSize: '1.2rem',
+            backgroundColor: isSpinning || balance <= 0 ? '#ddd' : '#007bff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: isSpinning || balance <= 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {isSpinning ? 'Spinning...' : 'Spin'}
+        </button>
+
+        <button
+          onClick={handleReset}
+          style={{
+            padding: '10px 20px',
+            fontSize: '1.2rem',
+            backgroundColor: '#28a745',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
+          Reset Balance
+        </button>
+      </div>
 
       {error && <p style={{ color: 'red', marginTop: '20px' }}>{error}</p>}
 
