@@ -1,5 +1,5 @@
 // React and hooks
-import React from 'react';
+import React, { Profiler, Suspense } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import Pagination from '../../components/Pagination/Pagination';
@@ -54,23 +54,14 @@ export const GameList = () => {
 
     // Fetch games on search input change
     useEffect(() => {
-        devLog('useEffect triggered for search input');
-
+        devLog('useEffect triggered for search or page change');
+    
         const delayDebounceFn = setTimeout(() => {
-            // Reset to page 1 on new search
-            fetchGames(search.trim(), 1); 
-            setPage(1);
+            fetchGames(search.trim(), page);
         }, 500);
-
+    
         return () => clearTimeout(delayDebounceFn);
-    }, [search]);
-
-    // Fetch games when the page changes
-    useEffect(() => {
-        devLog('useEffect triggered for page change');
-
-        fetchGames(search.trim(), page);
-    }, [page]);
+    }, [search, page]);
 
     /**
      * Fetches games from the backend and updates the application state accordingly.
@@ -84,7 +75,7 @@ export const GameList = () => {
      * 
      * @throws {Error} - Throws an error if the request fails or encounters an issue.
      */
-    const fetchGames = async (query = '', page = 1) => {
+    const fetchGames = useCallback(async (query = '', page = 1) => {
         devLog('fetchGames function is called');
 
         // Sanitize the inputs
@@ -111,8 +102,6 @@ export const GameList = () => {
                 limit
             )
                 .then((response) => {
-                    console.log("response: ", response);
-
                     // Set paginated games
                     setFilteredGames(response?.data?.paginatedGames); 
 
@@ -134,7 +123,7 @@ export const GameList = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [limit]);
 
     /**
      * Determines whether the "not found" state should be set to true.
@@ -293,7 +282,7 @@ export const GameList = () => {
      * Renders the list of filtered games.
      * @param {Array} filteredGames - List of games matching the search query.
      */
-    const RenderFilteredGames = React.memo(({ filteredGames = [] }: { filteredGames: Game[] }) => {
+    const RenderFilteredGames = React.memo(({ filteredGames }: { filteredGames: Game[] }) => {
         const sanitizedGames = sanitizeInput(filteredGames, []);
 
         devLog('renderFilteredGames function is called');
@@ -329,58 +318,6 @@ export const GameList = () => {
             </div>
         )
     });    
-
-    /**
-     * Determines if the "not found" message should be displayed.
-     * 
-     * @param {boolean} loading - Whether the application is currently loading.
-     * @param {string} error - Whether an error occurred during the process.
-     * @param {boolean} notFound - Whether no results were found for the query.
-     * 
-     * @returns {boolean} - Returns true if the "not found" message should be displayed.
-     */
-    const shouldShowNotFound = (
-        loading = false, 
-        error = "", 
-        notFound = false
-    ) => {
-        devLog('shouldShowNotFound function is called');
-
-        return !loading && !error && notFound;
-    };
-
-    /**
-     * Determines if the filtered game list should be displayed.
-     * 
-     * @param {boolean} loading - Whether the application is currently loading.
-     * @param {boolean} notFound - Whether no results were found for the query.
-     * @param {Array} filteredGames - The list of filtered games.
-     * 
-     * @returns {boolean} - Returns true if the filtered game list should be displayed.
-     */
-    const shouldShowFilteredGames = (
-        loading = false, 
-        notFound = false, 
-        filteredGames: Game[] = []
-    ) => {
-        devLog('shouldShowFilteredGames function is called');
-        
-        return !loading && !notFound && filteredGames.length > 0;
-    };
-
-    /**
-     * Determines if the component should display content when loading is complete, and no "not found" condition exists.
-     * 
-     * @param {boolean} loading - Whether the application is currently loading.
-     * @param {boolean} notFound - Whether no results were found for the query.
-     * 
-     * @returns {boolean} - Returns true if content should be displayed.
-     */
-    const shouldDisplayContent = (loading = false, notFound = false) => {
-        devLog('shouldDisplayContent function is called');
-
-        return !loading && !notFound;
-    };
 
     /**
      * Component to display a "No games found" message.
@@ -458,7 +395,9 @@ export const GameList = () => {
      * @type {JSX.Element}
      */
     const memoizedFilteredGames = useMemo(() => (
-        <RenderFilteredGames filteredGames={filteredGames} />
+        <Suspense fallback={<div>Loading games...</div>}>
+            <RenderFilteredGames filteredGames={filteredGames} />
+        </Suspense>
     ), [filteredGames]);
 
     /**
@@ -467,7 +406,11 @@ export const GameList = () => {
      *
      * @type {boolean}
      */
-    const showNotFound = useMemo(() => shouldShowNotFound(loading, error, notFound), [loading, error, notFound]);
+    const showNotFound = useMemo(() => {
+        devLog('showNotFound function is called');
+
+        return !loading && !error && notFound;
+    }, [loading, error, notFound]);
     
     /**
      * Memoized value to determine if the filtered game list should be displayed.
@@ -475,7 +418,11 @@ export const GameList = () => {
      *
      * @type {boolean}
      */
-    const showFilteredGames = useMemo(() => shouldShowFilteredGames(loading, notFound, filteredGames), [loading, notFound, filteredGames]);
+    const showFilteredGames = useMemo(() => {
+        devLog('showFilteredGames function is called');
+        
+        return !loading && !notFound && filteredGames.length > 0;
+    }, [loading, notFound, filteredGames]);
     
     /**
      * Memoized value to determine if the main content should be displayed.
@@ -483,7 +430,11 @@ export const GameList = () => {
      *
      * @type {boolean}
      */
-    const displayContent = useMemo(() => shouldDisplayContent(loading, notFound), [loading, notFound]);
+    const displayContent = useMemo(() => {
+        devLog('displayContent function is called');
+
+        return !loading && !notFound;
+    }, [loading, notFound]);
 
     /**
      * Memoized callback function to handle page changes in the pagination component.
@@ -495,6 +446,10 @@ export const GameList = () => {
         setPage(newPage);
     }, []);
 
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+    }, []);
+
     // Set the display names for the components
     NoGamesFound.displayName = 'NoGamesFound';
     LoadingMessage.displayName = 'LoadingMessage';
@@ -503,66 +458,73 @@ export const GameList = () => {
     RenderFilteredGames.displayName = 'RenderFilteredGames';
 
     return (
-        <div className="game-list container py-5">
-            <h1 className="game-list__title text-center mb-4">
-                Game List
-            </h1>
+        <Profiler
+            id="SlotMachine"
+            onRender={(id, phase, actualDuration) => {
+                console.log({ id, phase, actualDuration });
+            }}
+        >
+            <div className="game-list container py-5">
+                <h1 className="game-list__title text-center mb-4">
+                    Game List
+                </h1>
 
-            {/* Balance Section */}
-            {memoizedBalanceSection}
+                {/* Balance Section */}
+                {memoizedBalanceSection}
 
-            {/* Search Bar */}
-            <div className="game-list__search mb-4">
-                <input
-                    key="search-input"
-                    type="text"
-                    className="form-control game-list__search-input"
-                    placeholder="Search games..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
-
-            {/* Loading State */}
-            {loading && (
-                <div className="game-list__loading text-center my-3">
-                    <LoadingMessage />
-                </div>
-            )}
-
-            {/* Error Message */}
-            {error !== "" && (
-                <div className="game-list__error alert alert-danger text-center">
-                    <ErrorMessage error={error} />
-                </div>
-            )}
-
-            {/* No Games Found */}
-            {showNotFound && (
-                <div className="game-list__no-results alert alert-warning text-center">
-                    <NoGamesFound search={search} />
-                </div>
-            )}
-
-            {/* Filtered Games */}
-            {showFilteredGames && (
-                <div className="game-list__games row mb-5">
-                    {memoizedFilteredGames}
-                </div>
-            )}
-
-            {/* Pagination */}
-            {displayContent && (
-                <div className="game-list__pagination">
-                    <Pagination
-                        currentPage={page}
-                        totalItems={total}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={handlePageChange}
+                {/* Search Bar */}
+                <div className="game-list__search mb-4">
+                    <input
+                        key="search-input"
+                        type="text"
+                        className="form-control game-list__search-input"
+                        placeholder="Search games..."
+                        value={search}
+                        onChange={handleSearchChange}
                     />
                 </div>
-            )}
-        </div>
+
+                {/* Loading State */}
+                {loading && (
+                    <div className="game-list__loading text-center my-3">
+                        <LoadingMessage />
+                    </div>
+                )}
+
+                {/* Error Message */}
+                {error !== "" && (
+                    <div className="game-list__error alert alert-danger text-center">
+                        <ErrorMessage error={error} />
+                    </div>
+                )}
+
+                {/* No Games Found */}
+                {showNotFound && (
+                    <div className="game-list__no-results alert alert-warning text-center">
+                        <NoGamesFound search={search} />
+                    </div>
+                )}
+
+                {/* Filtered Games */}
+                {showFilteredGames && (
+                    <div className="game-list__games row mb-5">
+                        {memoizedFilteredGames}
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {displayContent && (
+                    <div className="game-list__pagination">
+                        <Pagination
+                            currentPage={page}
+                            totalItems={total}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
+                )}
+            </div>
+        </Profiler>
     );
 };
 
