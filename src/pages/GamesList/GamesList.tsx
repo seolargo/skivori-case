@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // React and hooks
 import React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -316,8 +314,8 @@ export const GameList = () => {
                                 alt={game?.title}
                                 className="card-img-top"
                                 loading="lazy"
-                                width="300" /* Reserve explicit space */
-                                height="200" /* Reserve explicit space */
+                                width="300"
+                                height="200"
                                 style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                             />
                             <div className="card-body">
@@ -436,6 +434,12 @@ export const GameList = () => {
         )
     });
 
+    /**
+     * Memoized balance section to render the user's balance, currency selector, and conversion button.
+     * It prevents unnecessary re-renders unless `balance`, `currency`, `convertedBalance`, or `exchangeRateError` changes.
+     *
+     * @type {JSX.Element}
+     */
     const memoizedBalanceSection = useMemo(() => (
         <RenderBalanceSection
             balance={balance}
@@ -447,14 +451,46 @@ export const GameList = () => {
         />
     ), [balance, currency, convertedBalance, exchangeRateError]);
 
+    /**
+     * Memoized component to render the filtered list of games.
+     * It prevents re-renders unless `filteredGames` changes.
+     *
+     * @type {JSX.Element}
+     */
     const memoizedFilteredGames = useMemo(() => (
         <RenderFilteredGames filteredGames={filteredGames} />
     ), [filteredGames]);
 
+    /**
+     * Memoized value to determine if the "No games found" message should be displayed.
+     * It recalculates only when `loading`, `error`, or `notFound` changes.
+     *
+     * @type {boolean}
+     */
     const showNotFound = useMemo(() => shouldShowNotFound(loading, error, notFound), [loading, error, notFound]);
+    
+    /**
+     * Memoized value to determine if the filtered game list should be displayed.
+     * It recalculates only when `loading`, `notFound`, or `filteredGames` changes.
+     *
+     * @type {boolean}
+     */
     const showFilteredGames = useMemo(() => shouldShowFilteredGames(loading, notFound, filteredGames), [loading, notFound, filteredGames]);
+    
+    /**
+     * Memoized value to determine if the main content should be displayed.
+     * It recalculates only when `loading` or `notFound` changes.
+     *
+     * @type {boolean}
+     */
     const displayContent = useMemo(() => shouldDisplayContent(loading, notFound), [loading, notFound]);
 
+    /**
+     * Memoized callback function to handle page changes in the pagination component.
+     * It prevents re-creating the function unless `setPage` changes.
+     *
+     * @param {number} newPage - The new page number to set.
+     */
     const handlePageChange = useCallback((newPage: number) => {
         setPage(newPage);
     }, []);

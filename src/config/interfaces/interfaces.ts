@@ -4,6 +4,8 @@ export type Config = {
     development: {
         BACKEND_API: string;
         GAMES_URL: string;
+        SLOT_SPIN: string;
+        SLOT_RESET: string;
         CURRENCY_API: string;
     };
     production: {

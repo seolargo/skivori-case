@@ -4,7 +4,11 @@ export const config: Config = {
     environment: "development", // development || production
     development: {
         BACKEND_API: 'http://localhost:3001/api',
+
         GAMES_URL: "games",
+        SLOT_SPIN: "slot/spin",
+        SLOT_RESET: "slot/reset",
+        
         CURRENCY_API: "https://open.er-api.com/v6/latest/USD"
     },
     production: {
