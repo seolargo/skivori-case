@@ -1,5 +1,7 @@
 // React hooks for managing state and side effects
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+
+import { Profiler } from 'react';
 
 // Axios library for making HTTP requests to the back-end API
 import axios from 'axios';
@@ -12,6 +14,9 @@ import './SlotMachine.css';
 
 // Application configuration module for environment-specific settings
 import config from '../../config/config';
+
+// Added devLog utility function for logging
+import devLog from '../../utils/devLog';
 
 const env = config.environment || 'development';
 
@@ -47,7 +52,8 @@ export const SlotMachine = () => {
 
     // Automatically reset balance on page refresh
     useEffect(() => {
-        // Call handleReset when the component is mounted
+        devLog('Function: useEffect - Reset');
+
         handleReset(); 
     }, []);
 
@@ -64,7 +70,9 @@ export const SlotMachine = () => {
      * @function
      * @throws {Error} If the request to the server fails.
      */
-    const handleSpin = async () => {
+    const handleSpin = useCallback(async () => {
+        devLog('Function: handleSpin');
+
         if (balance <= 0) {
             setError('Insufficient balance! Please reload or reset the game.');
 
@@ -82,28 +90,28 @@ export const SlotMachine = () => {
                 updatedBalance 
             } = response.data.data;
 
-            // Update the state with the results
-            setResult(spinResult);
-            setReward(reward);
-            setBalance(updatedBalance);
-            setSpinCount((prev) => prev + 1);
-
             // Add the current spin details to the history
-            setSpinHistory((prev) => [
-                ...prev,
-                {
+            setSpinHistory((prev) => {
+                const updatedSpin = {
                     spinNumber: spinCount + 1,
                     result: spinResult,
                     reward,
                     balance: updatedBalance,
-                },
-            ]);
+                };
+
+                setSpinCount((prev) => prev + 1);
+                setResult(spinResult);
+                setReward(reward);
+                setBalance(updatedBalance);
+
+                return [...prev, updatedSpin];
+            });
         } catch (err) {
             setError('Failed to spin the slot machine. Please try again.');
         } finally {
             setIsSpinning(false);
         }
-    };
+    }, [balance, spinCount, backendUrl, slotSpinUrl]);
 
     /**
      * Resets the slot machine state to its initial values.
@@ -117,6 +125,8 @@ export const SlotMachine = () => {
      * @throws {Error} If the request to the server fails.
      */
     const handleReset = async () => {
+        devLog('Function: handleReset');
+
         setError("");
 
         try {
@@ -140,9 +150,11 @@ export const SlotMachine = () => {
      * @param {Array} result - The array to check.
      * @returns {boolean} - Returns `true` if the array is valid and non-empty, otherwise `false`.
      */
-    const isValidResult = (result: string[] = []) => {
+    const isResultValid = useMemo(() => {
+        devLog('Function: isValidResult (useMemo)');
+
         return Array.isArray(result) && result.length > 0;
-    };
+    }, [result]);
 
     /**
      * Renders the slot machine result items.
@@ -150,20 +162,17 @@ export const SlotMachine = () => {
      * @param {Array} result - The result array to display.
      * @returns {JSX.Element} - The rendered result elements.
      */
-    const renderSlotMachineResult = (result: string[] = []) => {
-        if (isValidResult(result)) {
+    const renderSlotMachineResult = useMemo(() => {
+        if (isResultValid) {
             return result.map((item, index) => (
-                <span 
-                    key={index} 
-                    className="slot-machine__result-item"
-                >
+                <span key={index} className="slot-machine__result-item">
                     {item}
                 </span>
             ));
         }
-        
+
         return <span className="slot-machine__default-result">🎰 🎰 🎰</span>;
-    };
+    }, [result]);
 
     /**
      * Renders the reward message based on the reward value and result array.
@@ -172,17 +181,17 @@ export const SlotMachine = () => {
      * @param {Array} result - The result array to check for content.
      * @returns {string} - The appropriate reward message.
      */
-    const getRewardMessage = (reward = 0, result: string[] = []) => {
+    const getRewardMessage = useMemo(() => {
         if (reward > 0) {
             return `You won ${reward} coins! 🎉`;
         }
 
-        if (isValidResult(result)) {
+        if (isResultValid) {
             return "No win, better luck next time!";
         }
 
         return "";
-    };
+    }, [reward, result]);
 
     /**
      * Determines if the Spin button should be disabled.
@@ -192,12 +201,7 @@ export const SlotMachine = () => {
      * 
      * @returns {boolean} - Returns `true` if the button should be disabled, otherwise `false`.
      */
-    const isSpinDisabled = (isSpinning: boolean, balance: number) => {
-        console.log("isSpinning", isSpinning);
-        console.log("balance", balance);
-
-        return isSpinning || balance <= 0;
-    };
+    const isDisabled = useMemo(() => isSpinning || balance <= 0, [isSpinning, balance]);
     
     /**
      * Gets the class name for the Spin button based on its state.
@@ -206,11 +210,10 @@ export const SlotMachine = () => {
      * 
      * @returns {string} - The appropriate class names for the button.
      */
-    const getSpinButtonClass = (isDisabled = false) => {
-        return `slot-machine__button slot-machine__button--spin ${
-            isDisabled ? "slot-machine__button--disabled" : ""
-        }`;
-    };
+    const buttonClass = useMemo(
+        () => `slot-machine__button slot-machine__button--spin ${isDisabled ? "slot-machine__button--disabled" : ""}`,
+        [isDisabled]
+    );
     
     /**
      * Gets the button text based on the spinning state.
@@ -219,9 +222,11 @@ export const SlotMachine = () => {
      * 
      * @returns {string} - The appropriate text for the button.
      */
-    const getSpinButtonText = (isSpinning = false) => {
+    const getSpinButtonText = useMemo(() => {
+        devLog('Function: getSpinButtonText');
+
         return isSpinning ? "Spinning..." : "Spin";
-    };
+    }, [isSpinning]);
 
     /**
      * Renders table rows for the spin history.
@@ -229,16 +234,18 @@ export const SlotMachine = () => {
      * @param {Array} spinHistory - The list of spin history objects.
      * @returns {JSX.Element[]} - An array of table row elements.
      */
-    const renderSpinHistoryRows = (spinHistory: SpinHistoryEntry[] = []) => {
+    const SlotHistory = useMemo(() => {
+        devLog('Rendering SlotHistory');
+
         return spinHistory.map((spin) => (
-            <tr key={spin.spinNumber} className="slot-machine__history-row">
-                <td className="slot-machine__history-cell">{spin.spinNumber}</td>
-                <td className="slot-machine__history-cell">{spin.result.join(" - ")}</td>
-                <td className="slot-machine__history-cell">{spin.reward}</td>
-                <td className="slot-machine__history-cell">{spin.balance}</td>
-            </tr>
-        ));
-    };
+                <tr key={spin.spinNumber} className="slot-machine__history-row">
+                    <td className="slot-machine__history-cell">{spin.spinNumber}</td>
+                    <td className="slot-machine__history-cell">{spin.result.join(" - ")}</td>
+                    <td className="slot-machine__history-cell">{spin.reward}</td>
+                    <td className="slot-machine__history-cell">{spin.balance}</td>
+                </tr>
+            ));
+    }, [spinHistory]);
 
     /**
      * Renders the spin history section.
@@ -246,13 +253,13 @@ export const SlotMachine = () => {
      * @param {Array} spinHistory - The list of spin history objects.
      * @returns {JSX.Element} - The rendered spin history section.
      */
-    const renderSpinHistory = (spinHistory: SpinHistoryEntry[] = []) => {
+    const renderedHistory = useMemo(() => {
+        devLog('Function: renderSpinHistory');
+
         if (spinHistory.length > 0) {
             return (
                 <div className="slot-machine__history">
-                    <h2 className="slot-machine__history-title">
-                        Spin History
-                    </h2>
+                    <h2 className="slot-machine__history-title">Spin History</h2>
                     <table className="slot-machine__history-table">
                         <thead>
                             <tr>
@@ -263,7 +270,7 @@ export const SlotMachine = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {renderSpinHistoryRows(spinHistory)}
+                            {SlotHistory}
                         </tbody>
                     </table>
                 </div>
@@ -271,60 +278,61 @@ export const SlotMachine = () => {
         } else {
             return (
                 <div className="slot-machine__history">
-                    <h2 className="slot-machine__history-title">
-                        Spin History
-                    </h2>
-                    <p className="slot-machine__no-history">
-                        No spins yet! Start spinning to see the history.
-                    </p>
+                    <h2 className="slot-machine__history-title">Spin History</h2>
+                    <p className="slot-machine__no-history">No spins yet! Start spinning to see the history.</p>
                 </div>
             );
         }
-    };
+    }, [spinHistory]);
 
     return (
-        <div className="slot-machine">
-            <h1 className="slot-machine__title">
-                Slot Machine
-            </h1>
-            <h2 className="slot-machine__starting-balance">
-                Starting Balance: {startingBalance} coins
-            </h2>
-            <h2 className="slot-machine__current-balance">
-                Current Balance: {balance} coins
-            </h2>
+        <Profiler
+            id="SlotMachine"
+            onRender={(id, phase, actualDuration) => {
+                console.log({ id, phase, actualDuration });
+            }}
+        >
+            <div className="slot-machine">
+                <h1 className="slot-machine__title">
+                    Slot Machine
+                </h1>
+                <h2 className="slot-machine__starting-balance">
+                    Starting Balance: {startingBalance} coins
+                </h2>
+                <h2 className="slot-machine__current-balance">
+                    Current Balance: {balance} coins
+                </h2>
 
-            <div className="slot-machine__result">
-                {renderSlotMachineResult(result)}
+                <div className="slot-machine__result">
+                    {renderSlotMachineResult}
+                </div>
+
+                <p className="slot-machine__reward">
+                    {getRewardMessage}
+                </p>
+
+                <div className="slot-machine__controls">
+                    <button
+                        onClick={handleSpin}
+                        disabled={isDisabled}
+                        className={buttonClass}
+                    >
+                        {getSpinButtonText}
+                    </button>
+
+                    <button
+                        onClick={handleReset}
+                        className="slot-machine__button slot-machine__button--reset"
+                    >
+                        Reset Balance
+                    </button>
+                </div>
+
+                {error !== "" && <p className="slot-machine__error">{error}</p>}
+
+                {renderedHistory}
             </div>
-
-            <p className="slot-machine__reward">
-                {getRewardMessage(reward, result)}
-            </p>
-
-            <div className="slot-machine__controls">
-                <button
-                    onClick={handleSpin}
-                    disabled={isSpinDisabled(isSpinning, balance)}
-                    className={getSpinButtonClass(
-                        isSpinDisabled(isSpinning, balance)
-                    )}
-                >
-                    {getSpinButtonText(isSpinning)}
-                </button>
-
-                <button
-                    onClick={handleReset}
-                    className="slot-machine__button slot-machine__button--reset"
-                >
-                    Reset Balance
-                </button>
-            </div>
-
-            {error !== "" && <p className="slot-machine__error">{error}</p>}
-
-            {renderSpinHistory(spinHistory)}
-        </div>
+        </Profiler>
     );
 };
 
