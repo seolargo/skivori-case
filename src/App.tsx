@@ -11,20 +11,20 @@ const SlotMachine = lazy(() => import('./pages/SlotMachine/SlotMachine'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 
 export function App() {
-    return (
-        <Router>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<LoadingSpinner />}>
-                    <Routes>
-                        <Route path="/" element={<Homepage />} />
-                        <Route path="/games" element={<GameList />} />
-                        <Route path="/slot-machine" element={<SlotMachine />} />
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </Suspense>
-            </ErrorBoundary>
-        </Router>
-    );
+  return (
+    <Router>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/games" element={<GameList />} />
+            <Route path="/slot-machine" element={<SlotMachine />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+    </Router>
+  );
 }
 
 export default App;
