@@ -1,20 +1,30 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ErrorBoundary } from 'react-error-boundary';
+import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
+import ErrorFallback from './components/ErrorFallback/ErrorFallback';
 
-import GameList from './pages/GamesList/GamesList';
-import SlotMachine from './pages/SlotMachine/SlotMachine';
-
-import 'bootstrap/dist/css/bootstrap.min.css';
+// Lazy load the components
+const Homepage = lazy(() => import('./pages/HomePage/HomePage'));
+const GameList = lazy(() => import('./pages/GamesList/GamesList'));
+const SlotMachine = lazy(() => import('./pages/SlotMachine/SlotMachine'));
+const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 
 export function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<h1>Home Page</h1>} />
-        <Route path="/games" element={<GameList />} />
-        <Route path="/slot-machine" element={<SlotMachine />} />
-      </Routes>
-    </Router>
-  );
+    return (
+        <Router>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                        <Route path="/" element={<Homepage />} />
+                        <Route path="/games" element={<GameList />} />
+                        <Route path="/slot-machine" element={<SlotMachine />} />
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
+                </Suspense>
+            </ErrorBoundary>
+        </Router>
+    );
 }
 
 export default App;

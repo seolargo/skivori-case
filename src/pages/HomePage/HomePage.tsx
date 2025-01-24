@@ -6,7 +6,7 @@ import './HomePage.css';
 
 export const Homepage: React.FC = () => {
     return (
-        <div className="container">
+        <div className="container_homepage">
             <h1>
                 Welcome to the Homepage
             </h1>
