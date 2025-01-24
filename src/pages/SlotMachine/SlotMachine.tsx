@@ -72,16 +72,15 @@ export const SlotMachine = () => {
      */
     const handleSpin = useCallback(async () => {
         devLog('Function: handleSpin');
-
+    
         if (balance <= 0) {
             setError('Insufficient balance! Please reload or reset the game.');
-
             return;
         }
-
+    
         setError("");
         setIsSpinning(true);
-
+    
         try {
             const response = await axios.post(`${backendUrl}/${slotSpinUrl}`);
             const { 
@@ -89,23 +88,29 @@ export const SlotMachine = () => {
                 reward, 
                 updatedBalance 
             } = response.data.data;
-
+    
+            // Increment spinCount synchronously
+            const newSpinCount = spinCount + 1;
+    
             // Add the current spin details to the history
             setSpinHistory((prev) => {
                 const updatedSpin = {
-                    spinNumber: spinCount + 1,
+                    spinNumber: newSpinCount,
                     result: spinResult,
                     reward,
                     balance: updatedBalance,
                 };
-
-                setSpinCount((prev) => prev + 1);
-                setResult(spinResult);
-                setReward(reward);
-                setBalance(updatedBalance);
-
+    
                 return [...prev, updatedSpin];
             });
+    
+            // Update spinCount state
+            setSpinCount(newSpinCount);
+    
+            // Update other states
+            setResult(spinResult);
+            setReward(reward);
+            setBalance(updatedBalance);
         } catch (err) {
             setError('Failed to spin the slot machine. Please try again.');
         } finally {

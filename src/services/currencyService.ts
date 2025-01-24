@@ -72,7 +72,6 @@ export const convertCurrency = async (currency: string, balance: number): Promis
 
         // Check if the currency rate is cached and still valid
         if (cachedRate && Date.now() - cachedRate.timestamp < CACHE_TTL) {
-            console.log('Using cached exchange rate.');
             const converted = (balance * cachedRate.rate).toFixed(2);
             return `${converted} ${currency}`;
         }
