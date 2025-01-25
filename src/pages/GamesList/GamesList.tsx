@@ -451,6 +451,9 @@ export const GameList = () => {
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
+
+        // Reset page when search query changes
+        setPage(1); 
     }, []);
 
     // Set the display names for the components
