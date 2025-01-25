@@ -18,6 +18,8 @@ import config from '../../config/config';
 // Added devLog utility function for logging;
 import devLog from '../../utils/devLog';
 
+import { Actions } from './enums/enums';
+
 const env = config.environment || 'development';
 
 // Base backend URL and endpoints
@@ -72,6 +74,7 @@ export const SlotMachine = () => {
         // Prevent spinning if the balance is zero or less
         if (balance <= 0) {
             setError('Insufficient balance! Please reload or reset the game.');
+            
             return;
         }
 
@@ -83,7 +86,7 @@ export const SlotMachine = () => {
             const response = await axios.post(
                 `${backendUrl}/${slotSpinUrl}`, 
                 {
-                    action: 'spin',
+                    action: Actions.Spin,
                 }
             );
 
@@ -150,7 +153,7 @@ export const SlotMachine = () => {
             const response = await axios.post(
                 `${backendUrl}/${slotSpinUrl}`, 
                 {
-                    action: 'reset',
+                    action: Actions.Reset,
                 }
             );
 

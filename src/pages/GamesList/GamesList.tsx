@@ -1,18 +1,29 @@
-// React and hooks
+// Importing necessary modules and components from React for building the component
 import React, { Profiler, Suspense } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+// Importing a custom pagination component to handle paginated results
 import Pagination from '../../components/Pagination/Pagination';
 
-// Bootstrap CSS
+// Importing Bootstrap CSS for styling
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Services
+// Service to fetch game data from a remote server
 import { fetchGamesFromRemote } from '../../services/gamesService';
+
+// Service to convert currency values based on the selected target currency
 import { convertCurrency } from '../../services/currencyService';
+
+// Enumeration for supported currencies
 import { Currencies } from '../../enums/enums';
+
+// Utility function to sanitize inputs to prevent invalid data or security issues
 import sanitizeInput from '../../utils/sanitizeInput';
+
+// Interface for defining the structure of a game object
 import { Game } from './interfaces/interface';
+
+// Utility for logging development-specific messages for debugging
 import devLog from '../../utils/devLog';
 
 export const GameList = () => {
@@ -449,11 +460,20 @@ export const GameList = () => {
         setPage(newPage);
     }, []);
 
+    /**
+     * Handles changes in the search input field.
+     * Updates the `search` state with the input value and resets the page number to 1.
+     *
+     * @function
+     * @param {React.ChangeEvent<HTMLInputElement>} e - The change event triggered by the search input field.
+     */
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        // Update the `search` state with the current value of the input field
         setSearch(e.target.value);
 
-        // Reset page when search query changes
-        setPage(1); 
+        // Reset the current page to 1 whenever the search query changes
+        // This ensures that the search always starts from the first page of results
+        setPage(1);
     }, []);
 
     // Set the display names for the components
