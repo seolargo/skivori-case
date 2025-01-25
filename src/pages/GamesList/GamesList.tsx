@@ -26,6 +26,13 @@ import { Game } from './interfaces/interface';
 // Utility for logging development-specific messages for debugging
 import devLog from '../../utils/devLog';
 
+// Header component
+import Header from '../../components/Header/Header';
+
+import { truncateTitle } from '../../../src/utils/truncateTitle';
+
+import './GamesList.css';
+
 export const GameList = () => {
     // Current balance in default currency
     const balance = 100;
@@ -301,6 +308,17 @@ export const GameList = () => {
 
         devLog('renderFilteredGames function is called');
 
+        // Show a loader if data is still being fetched
+        if (loading) {
+            return (
+                <div className="text-center my-5">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="row mb-5">
                 <h2>
@@ -322,8 +340,8 @@ export const GameList = () => {
                                 style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                             />
                             <div className="card-body">
-                                <h5 className="card-title text-center">
-                                    {game?.title}
+                                <h5 className="card-title text-center card-title-text">
+                                    { truncateTitle(game?.title, 30) }
                                 </h5>
                             </div>
                         </div>
@@ -490,6 +508,7 @@ export const GameList = () => {
                 console.log({ id, phase, actualDuration });
             }}
         >
+            <Header />
             <div className="game-list container py-5">
                 <h1 className="game-list__title text-center mb-4">
                     Game List

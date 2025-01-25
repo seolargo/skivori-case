@@ -1,0 +1,46 @@
+/* General header styling */
+.slot-machine-header {
+  background-color: #282c34;
+  color: #ffffff;
+  text-align: center;
+  padding: 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid #ff9800;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+  
+/* Title styling */
+.slot-machine-header__title {
+  font-size: 2rem;
+  margin: 0;
+  user-select: none;
+  transition: text-decoration 0.3s ease, font-size 0.2s ease;
+}
+
+.slot-machine-header__title:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .slot-machine-header {
+    padding: 0.8rem;
+  }
+
+  .slot-machine-header__title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .slot-machine-header {
+    padding: 0.6rem;
+  }
+
+  .slot-machine-header__title {
+    font-size: 1.2rem;
+  }
+} 

@@ -20,6 +20,9 @@ import devLog from '../../utils/devLog';
 
 import { Actions } from './enums/enums';
 
+// Header component
+import Header from '../../components/Header/Header';
+
 const env = config.environment || 'development';
 
 // Base backend URL and endpoints
@@ -323,6 +326,7 @@ export const SlotMachine = () => {
                 console.log({ id, phase, actualDuration });
             }}
         >
+            <Header />
             <div className="slot-machine">
                 <h1 className="slot-machine__title">
                     Slot Machine
