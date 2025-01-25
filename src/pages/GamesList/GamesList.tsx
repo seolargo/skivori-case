@@ -103,15 +103,18 @@ export const GameList = () => {
             )
                 .then((response) => {
                     // Set paginated games
-                    setFilteredGames(response?.data?.paginatedGames); 
+                    //setFilteredGames(response?.data?.paginatedGames);
+                    setFilteredGames(response?.paginatedGames); 
 
                     // Set total items
-                    setTotal(response?.data?.total); 
+                    // setTotal(response?.data?.total); 
+                    setTotal(response?.total); 
 
                     // Check if a search query exists and if no games match the query
                     handleNotFound(
                         query, 
-                        response?.data?.paginatedGames, 
+                        // response?.data?.paginatedGames, 
+                        response?.paginatedGames, 
                         setNotFound
                     );
                 })
@@ -421,7 +424,7 @@ export const GameList = () => {
     const showFilteredGames = useMemo(() => {
         devLog('showFilteredGames function is called');
         
-        return !loading && !notFound && filteredGames.length > 0;
+        return !loading && !notFound && filteredGames?.length > 0;
     }, [loading, notFound, filteredGames]);
     
     /**

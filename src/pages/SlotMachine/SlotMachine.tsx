@@ -15,7 +15,7 @@ import './SlotMachine.css';
 // Application configuration module for environment-specific settings
 import config from '../../config/config';
 
-// Added devLog utility function for logging
+// Added devLog utility function for logging;
 import devLog from '../../utils/devLog';
 
 const env = config.environment || 'development';
@@ -23,21 +23,17 @@ const env = config.environment || 'development';
 // Base backend URL and endpoints
 const backendUrl = config[env as "development"].BACKEND_API ?? '';
 const slotSpinUrl = config[env as "development"].SLOT_SPIN ?? '';
-const slotResetUrl = config[env as "development"].SLOT_RESET ?? '';
+//const slotResetUrl = config[env as "development"].SLOT_RESET ?? '';
 
 export const SlotMachine = () => {
-    // Initial balance
+    // Static initial balance of the user
     const [startingBalance] = useState<number>(20); 
-
-    // Current balance
+    // Current balance of the user
     const [balance, setBalance] = useState<number>(20); 
-
-    // Reward from the spin
+    // Reward from spinning the slot machine
     const [reward, setReward] = useState<number>(0); 
-
-    // Result of the spin
+    // Result of spinning the slot machine
     const [result, setResult] = useState<string[]>([]); 
-    
     // Spin history
     const [spinHistory, setSpinHistory] = useState<SpinHistoryEntry[]>([]); 
 
@@ -45,16 +41,16 @@ export const SlotMachine = () => {
     const [isSpinning, setIsSpinning] = useState<boolean>(false); 
     
     // Error messages
-    const [error, setError] = useState<string>(""); 
+    const [error, setError] = useState<string>(''); 
     
     // Number of spins
     const [spinCount, setSpinCount] = useState<number>(0); 
 
-    // Automatically reset balance on page refresh
+    // Reset the balance on initial load
     useEffect(() => {
-        devLog('Function: useEffect - Reset');
+        devLog('Resetting balance on component load.');
 
-        handleReset(); 
+        handleReset();
     }, []);
 
     /**
@@ -71,42 +67,57 @@ export const SlotMachine = () => {
      * @throws {Error} If the request to the server fails.
      */
     const handleSpin = useCallback(async () => {
-        devLog('Function: handleSpin');
-    
+        devLog('Spinning the slot machine.');
+
+        // Prevent spinning if the balance is zero or less
         if (balance <= 0) {
             setError('Insufficient balance! Please reload or reset the game.');
             return;
         }
-    
-        setError("");
+
+        setError('');
         setIsSpinning(true);
-    
+
         try {
-            const response = await axios.post(`${backendUrl}/${slotSpinUrl}`);
+            // Send current balance to the backend
+            const response = await axios.post(
+                `${backendUrl}/${slotSpinUrl}`, 
+                {
+                    action: 'spin',
+                }
+            );
+
             const { 
                 spinResult, 
                 reward, 
                 updatedBalance 
-            } = response.data.data;
-    
-            // Increment spinCount synchronously
+            } = response.data;
+
+            /*
+                const { 
+                    spinResult, 
+                    reward, 
+                    updatedBalance 
+                } = response.data.data;
+            */
+
+            // Update state with response data
             const newSpinCount = spinCount + 1;
-    
+
             // Add the current spin details to the history
-            setSpinHistory((prev) => {
-                const updatedSpin = {
+            setSpinHistory((prev) => [
+                ...prev,
+                {
                     spinNumber: newSpinCount,
                     result: spinResult,
                     reward,
                     balance: updatedBalance,
-                };
-    
-                return [...prev, updatedSpin];
-            });
-    
+                },
+            ]);
+
             // Update spinCount state
             setSpinCount(newSpinCount);
-    
+
             // Update other states
             setResult(spinResult);
             setReward(reward);
@@ -119,23 +130,30 @@ export const SlotMachine = () => {
     }, [balance, spinCount, backendUrl, slotSpinUrl]);
 
     /**
-     * Resets the slot machine state to its initial values.
-     * 
-     * - Sends a POST request to the server to reset the user's balance.
-     * - Resets all state variables, including balance, reward, results, spin history, and spin count.
-     * - Displays an error if the request to reset fails.
-     *
-     * @async
-     * @function
-     * @throws {Error} If the request to the server fails.
-     */
+         * Resets the slot machine state to its initial values.
+         * 
+         * - Sends a POST request to the server to reset the user's balance.
+         * - Resets all state variables, including balance, reward, results, spin history, and spin count.
+         * - Displays an error if the request to reset fails.
+         *
+         * @async
+         * @function
+         * @throws {Error} If the request to the server fails.
+         */
     const handleReset = async () => {
-        devLog('Function: handleReset');
+        devLog('Resetting the slot machine.');
 
-        setError("");
+        setError('');
+        setIsSpinning(true);
 
         try {
-            const response = await axios.post(`${backendUrl}/${slotResetUrl}`);
+            const response = await axios.post(
+                `${backendUrl}/${slotSpinUrl}`, 
+                {
+                    action: 'reset',
+                }
+            );
+
             const { balance } = response.data;
 
             // Reset all state values to initial values
@@ -146,6 +164,8 @@ export const SlotMachine = () => {
             setSpinCount(0);
         } catch (err) {
             setError('Failed to reset the balance. Please try again.');
+        } finally {
+            setIsSpinning(false);
         }
     };
 
@@ -206,8 +226,11 @@ export const SlotMachine = () => {
      * 
      * @returns {boolean} - Returns `true` if the button should be disabled, otherwise `false`.
      */
-    const isDisabled = useMemo(() => isSpinning || balance <= 0, [isSpinning, balance]);
-    
+    const isDisabled = useMemo(() => {
+        const disabled = isSpinning || balance <= 0;
+        return disabled;
+    }, [isSpinning, balance]);
+
     /**
      * Gets the class name for the Spin button based on its state.
      *
@@ -219,7 +242,7 @@ export const SlotMachine = () => {
         () => `slot-machine__button slot-machine__button--spin ${isDisabled ? "slot-machine__button--disabled" : ""}`,
         [isDisabled]
     );
-    
+
     /**
      * Gets the button text based on the spinning state.
      *
