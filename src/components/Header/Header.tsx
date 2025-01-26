@@ -11,7 +11,7 @@ export const Header: React.FC = () => {
                 className="slot-machine-header__title"
                 onClick={() => navigate('/')}
             >
-                🎰 Slot Machine Game
+                🎰 Skivori Case
             </h1>
         </header>
     );
