@@ -165,7 +165,7 @@ export const GameList = () => {
             { query: "", paginatedGames: [] }
         );
 
-        return sanitizedQuery && sanitizedGames.length === 0;
+        return sanitizedQuery && sanitizedGames?.length === 0;
     };
 
     /**

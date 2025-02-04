@@ -46,7 +46,7 @@ const renderPageNumberButtons = (
 
         return (
             <li
-                key={`page_${pageNum}`} // Add a unique key for each list item
+                key={`page_${pageNum}`} 
                 className={`page-item ${currentPage === pageNum ? 'active' : ''}`}
             >
                 <button
@@ -66,7 +66,11 @@ const renderPageNumberButtons = (
  * 
  * @param {number} newPage - The page number to navigate to.
  */
-const handlePageChange = (newPage: number, total: number, onPageChange: any) => {
+const handlePageChange = (
+    newPage: number, 
+    total: number, 
+    onPageChange: any
+) => {
     if (isValidPage(newPage, total, limit)) {
         onPageChange(newPage);
     }
@@ -93,7 +97,7 @@ const renderPaginationButton = (
     isActive = false
 ) => (
     <li
-        key={`pagination_${label}_${targetPage}`} // Add a unique key for each button
+        key={`pagination_${label}_${targetPage}`}
         className={`page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`}
     >
         <button

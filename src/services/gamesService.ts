@@ -34,11 +34,15 @@ export const fetchGamesFromRemote = async (
             method: method,
             url: endpoint,
             data: query ? 
-                { search: query, page, limit } : 
-                undefined,
+                { 
+                    search: query, 
+                    page, 
+                    limit 
+                } : 
+                {},  // Use an empty object instead of undefined
             params: !query ? 
                 { page, limit } : 
-                undefined,
+                {},  // Use an empty object instead of undefined
         });
 
         return response.data;

@@ -1,4 +1,4 @@
-import './ErrorFallback.css'; // Optional: Add styles for the error fallback
+import './ErrorFallback.css';
 
 export const ErrorFallback = ({ error }: { error: Error }) => {
     return (

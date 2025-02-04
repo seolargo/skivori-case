@@ -136,16 +136,16 @@ export const SlotMachine = () => {
     }, [balance, spinCount, backendUrl, slotSpinUrl]);
 
     /**
-         * Resets the slot machine state to its initial values.
-         * 
-         * - Sends a POST request to the server to reset the user's balance.
-         * - Resets all state variables, including balance, reward, results, spin history, and spin count.
-         * - Displays an error if the request to reset fails.
-         *
-         * @async
-         * @function
-         * @throws {Error} If the request to the server fails.
-         */
+     * Resets the slot machine state to its initial values.
+     * 
+     * - Sends a POST request to the server to reset the user's balance.
+     * - Resets all state variables, including balance, reward, results, spin history, and spin count.
+     * - Displays an error if the request to reset fails.
+     *
+     * @async
+     * @function
+     * @throws {Error} If the request to the server fails.
+     */
     const handleReset = async () => {
         devLog('Resetting the slot machine.');
 
@@ -184,7 +184,7 @@ export const SlotMachine = () => {
     const isResultValid = useMemo(() => {
         devLog('Function: isValidResult (useMemo)');
 
-        return Array.isArray(result) && result.length > 0;
+        return Array.isArray(result) && result?.length > 0;
     }, [result]);
 
     /**
@@ -290,7 +290,7 @@ export const SlotMachine = () => {
     const renderedHistory = useMemo(() => {
         devLog('Function: renderSpinHistory');
 
-        if (spinHistory.length > 0) {
+        if (spinHistory?.length > 0) {
             return (
                 <div className="slot-machine__history">
                     <h2 className="slot-machine__history-title">Spin History</h2>
